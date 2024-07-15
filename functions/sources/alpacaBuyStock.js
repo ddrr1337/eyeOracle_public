@@ -1,4 +1,4 @@
-const SLEEP_TIME = 2000 // 5 seconds
+const SLEEP_TIME = 2000 // 2 seconds
 
 const headers = {
     accept: "application/json",
@@ -10,25 +10,41 @@ const headers = {
 async function main() {
     const stockTicker = args[0]
     const amountQty = args[1]
-
-    _checkKeys()
+    const nonce = args[2]
 
     const isMarketOpen = await checkMarket()
 
     if (isMarketOpen) {
-        const side = "buy"
-        let order_id = await placeOrder(stockTicker, amountQty, side)
+        const idOfOpenOrder = await checkOpenedOrder(nonce)
+        if (idOfOpenOrder == "01") {
+            const side = "buy"
+            const order_id = await placeOrder(
+                stockTicker,
+                amountQty,
+                side,
+                nonce,
+            )
 
-        let filledQty = await orderDetails(order_id)
+            await sleep(SLEEP_TIME)
+            const responseDetails = await orderDetails(order_id)
 
-        return Functions.encodeUint256(filledQty)
+            return Functions.encodeUint256(
+                parseInt(Number(responseDetails.filled_qty) * 1e18),
+            )
+        } else {
+            await sleep(SLEEP_TIME)
+            const responseDetails = await orderDetails(idOfOpenOrder)
+            return Functions.encodeUint256(
+                parseInt(Number(responseDetails.filled_qty) * 1e18),
+            )
+        }
     } else {
         return Functions.encodeUint256(0)
     }
 }
 
 // returns string: client_order_id, string: orderStatus, int: responseStatus
-async function placeOrder(symbol, qty, side) {
+async function placeOrder(symbol, qty, side, nonceId) {
     // TODO, something is wrong with this request, need to fix
     const alpacaBuyRequest = Functions.makeHttpRequest({
         method: "POST",
@@ -40,6 +56,7 @@ async function placeOrder(symbol, qty, side) {
             time_in_force: "day",
             symbol: symbol,
             notional: qty,
+            client_order_id: nonceId,
         },
     })
 
@@ -47,6 +64,24 @@ async function placeOrder(symbol, qty, side) {
     const response = responseRaw.data
 
     return response.id
+}
+
+async function checkOpenedOrder(nonceId) {
+    const openOrderDetails = Functions.makeHttpRequest({
+        method: "GET",
+        url: `https://paper-api.alpaca.markets/v2/orders?status=all`,
+        headers: headers,
+    })
+
+    const openOrdersArrayRaw = await openOrderDetails
+    const openOrdersArray = openOrdersArrayRaw.data
+
+    for (let i = 0; i < openOrdersArray.length; i++) {
+        if (openOrdersArray[i].client_order_id === nonceId) {
+            return openOrdersArray[i].id
+        }
+    }
+    return "01"
 }
 
 async function orderDetails(order_id) {
@@ -60,7 +95,7 @@ async function orderDetails(order_id) {
 
     const responseDetails = responseDetailsRaw.data
 
-    return parseInt(Number(responseDetails.filled_qty) * 1e18)
+    return responseDetails
 }
 
 // returns int: responseStatus
@@ -116,7 +151,7 @@ function _checkKeys() {
 async function checkMarket() {
     const marketStatus = Functions.makeHttpRequest({
         method: "GET",
-        url: "https://paper-api.alpaca.markets/v2/orders",
+        url: "https://paper-api.alpaca.markets/v2/clock",
         headers: headers,
     })
 

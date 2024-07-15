@@ -22,11 +22,17 @@ const requestBuyStock = {
     // Optional if secrets are expected in the sourceLocation of secrets (only Remote or DONHosted is supported)
     secretsLocation: Location.DONHosted,
     // Args (string only array) can be accessed within the source code with `args[index]` (ie: args[0]).
-    args: ["TSLA", "250"],
+    args: ["TSLA", "250", getRandomNonce()],
     // Code language (only JavaScript is currently supported)
     codeLanguage: CodeLanguage.JavaScript,
     // Expected type of the returned value
     expectedReturnType: ReturnType.uint256,
+}
+
+function getRandomNonce() {
+    const randomNumber = Math.floor(Math.random() * 1000000) + 1
+    console.log(randomNumber)
+    return randomNumber.toString()
 }
 
 module.exports = requestBuyStock

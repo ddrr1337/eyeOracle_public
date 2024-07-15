@@ -63,7 +63,7 @@ contract dTESLA is ConfirmedOwner, FunctionsClient, ERC20 {
     mapping(address user => uint256 pendingWithdrawAmount)
         public s_userToWithdrawAmount;
 
-    uint256 public httpRequestNonce;
+    uint256 public httpRequestNonce = 2000;
 
     constructor(
         string memory mintSourceCode,
@@ -117,9 +117,10 @@ contract dTESLA is ConfirmedOwner, FunctionsClient, ERC20 {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(s_mintSourceCode);
         req.addDONHostedSecrets(secretSlot, secretVersion);
-        string[] memory args = new string[](2);
-        args[0] = "AAPL";
+        string[] memory args = new string[](3);
+        args[0] = "TSLA";
         args[1] = amount.toString();
+        args[2] = httpRequestNonce.toString();
         req.setArgs(args);
 
         bytes32 requestId = _sendRequest(

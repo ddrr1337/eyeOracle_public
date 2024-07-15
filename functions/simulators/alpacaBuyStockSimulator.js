@@ -14,6 +14,13 @@ async function main() {
                 ).toString(),
             )}\n`,
         )
+        /* console.log(
+            `Response returned by script during local simulation: ${decodeResult(
+                responseBytesHexstring,
+                requestBuyStock.expectedReturnType,
+            ).toString()}\n`,
+        ) */
+        console.log("HEXResponse: ", responseBytesHexstring)
     }
 
     if (errorString) {
