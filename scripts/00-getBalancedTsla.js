@@ -9,29 +9,29 @@ async function main() {
 
     await getGasPrice()
 
-    const dTeslaDeployment = await deployments.get("dTESLA")
-    const dTeslaAddress = dTeslaDeployment.address
-    const dTeslaAbi = dTeslaDeployment.abi
+    const dStockDeployment = await deployments.get("dSTOCK")
+    const dStockAddress = dStockDeployment.address
+    const dStockAbi = dStockDeployment.abi
 
-    const dTeslaContract = new ethers.Contract(
-        dTeslaAddress,
-        dTeslaAbi,
+    const dStockContract = new ethers.Contract(
+        dStockAddress,
+        dStockAbi,
         account,
     )
 
-    const dTeslaBalance = await dTeslaContract.balanceOf(account.address)
+    const dStockBalance = await dStockContract.balanceOf(account.address)
 
     console.log(
-        "-------------------- BALANCE OF dTESLA -----------------------",
+        "-------------------- BALANCE OF dStock -----------------------",
     )
 
     console.log(
         "Balance of account: ",
         account.address,
         "In ERC20",
-        dTeslaContract.address,
+        dStockContract.address,
     )
-    console.log(parseFloat(dTeslaBalance), parseFloat(dTeslaBalance / 1e18))
+    console.log(parseFloat(dStockBalance), parseFloat(dStockBalance / 1e18))
 }
 
 main()

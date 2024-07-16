@@ -5,6 +5,7 @@ require("./tasks/block-number")
 require("hardhat-gas-reporter")
 require("solidity-coverage")
 require("hardhat-deploy")
+require("hardhat-contract-sizer")
 
 const SEPOLIA_RPC = process.env.SEPOLIA_RPC
 const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC

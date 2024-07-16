@@ -8,6 +8,8 @@ async function getGasPrice() {
     console.log("---------------- GAS PRICE --------------")
     console.log("⛽ Gas Price gwei: ", parseFloat(gasPrice.gasPrice / 10 ** 9))
     console.log("----------------------------------------")
+
+    return parseFloat(gasPrice.gasPrice / 10 ** 9)
 }
 
 module.exports = { getGasPrice }

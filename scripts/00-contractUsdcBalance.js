@@ -19,21 +19,18 @@ async function main() {
         account,
     )
 
-    console.log("Instance contract address: ", dStockContract.address)
-
-    const fundTx = await dStockContract.fundAccount(BigInt(1000 * 1e6))
-    await fundTx.wait(1)
-
-    console.log(
-        "-------------------- FUND ACCOUNT WITH USDC COMPLETED -----------------------",
+    const contractUsdcBalance = await dStockContract.userBalance(
+        account.address,
     )
 
-    const amount = BigInt("250")
-
-    await dStockContract.sendMintRequest(amount)
-
     console.log(
-        "-------------------- MINT REQUEST COMPLETED -----------------------",
+        "-------------------- BALANCE OF USDC IN CONTRACT -----------------------",
+    )
+
+    console.log("Balance of USDC in contract: ", account.address)
+    console.log(
+        parseInt(contractUsdcBalance),
+        parseFloat(contractUsdcBalance / 1e6),
     )
 }
 

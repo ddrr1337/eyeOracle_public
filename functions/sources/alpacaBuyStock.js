@@ -1,3 +1,4 @@
+//tester1
 const SLEEP_TIME = 2000 // 2 seconds
 
 const headers = {
@@ -28,15 +29,23 @@ async function main() {
             await sleep(SLEEP_TIME)
             const responseDetails = await orderDetails(order_id)
 
-            return Functions.encodeUint256(
-                parseInt(Number(responseDetails.filled_qty) * 1e18),
-            )
+            if (responseDetails.status === "filled") {
+                if (responseDetails.status === "filled") {
+                    return Functions.encodeUint256(0)
+                }
+            } else {
+                return Functions.encodeUint256(0)
+            }
         } else {
             await sleep(SLEEP_TIME)
             const responseDetails = await orderDetails(idOfOpenOrder)
-            return Functions.encodeUint256(
-                parseInt(Number(responseDetails.filled_qty) * 1e18),
-            )
+            if (responseDetails.status === "filled") {
+                return Functions.encodeUint256(
+                    parseInt(Number(responseDetails.filled_qty) * 1e18),
+                )
+            } else {
+                return Functions.encodeUint256(0)
+            }
         }
     } else {
         return Functions.encodeUint256(0)
@@ -69,7 +78,7 @@ async function placeOrder(symbol, qty, side, nonceId) {
 async function checkOpenedOrder(nonceId) {
     const openOrderDetails = Functions.makeHttpRequest({
         method: "GET",
-        url: `https://paper-api.alpaca.markets/v2/orders?status=all`,
+        url: `https://paper-api.alpaca.markets/v2/orders?status=all&limit=20`,
         headers: headers,
     })
 
