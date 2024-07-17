@@ -11,38 +11,17 @@ async function main() {
     const nonce = args[2]
     const marketStatus = await checkMarket()
 
-    if (!marketStatus) {
-        return Functions.encodeUint256(0)
-    }
-    const checkOrder = await checkOpenedOrder(nonce)
+    if (marketStatus) {
+        const checkOrder = await checkOpenedOrder(nonce)
 
-    if (checkOrder == "01") {
-        const order_id = await placeOrderSell(cryptoAsset, amountQty, nonce)
-        await sleep(SLEEP_TIME)
-        const orderDataSell = await orderDetails(order_id)
-
-        if (!orderDataSell.status == "filled") {
-            return Functions.encodeUint256(0)
-        }
-        const filledQty = calculateFilledAmount(
-            orderDataSell.filled_qty,
-            orderDataSell.filled_avg_price,
-        )
-
-        return Functions.encodeUint256(parseInt(filledQty))
-    } else {
-        await sleep(SLEEP_TIME)
-        const orderData = await orderDetails(checkOrder)
-
-        if (orderData.status == "filled") {
-            const filledQty = calculateFilledAmount(
-                orderData.filled_qty,
-                orderData.filled_avg_price,
-            )
-            return Functions.encodeUint256(parseInt(filledQty))
+        if (checkOrder == "01") {
+            const order_id = await placeOrderBuy(stockTicker, amountQty, nonce)
+            return Functions.encodeString(order_id)
         } else {
-            return Functions.encodeUint256(0)
+            return Functions.encodeString(checkOrder)
         }
+    } else {
+        return Functions.encodeUint256(parseInt(nonce))
     }
 }
 
@@ -77,41 +56,15 @@ async function checkOpenedOrder(nonceId) {
     const openOrdersArray = openOrdersArrayRaw.data
 
     for (let i = 0; i < openOrdersArray.length; i++) {
-        if (openOrdersArray[i].client_order_id == nonceId) {
+        if (openOrdersArray[i].client_order_id === nonceId) {
             return openOrdersArray[i].id
         }
     }
     return "01"
 }
 
-async function placeOrderSell(symbol, qty, nonceId) {
-    // TODO, something is wrong with this request, need to fix
-    const alpacaSellRequest = Functions.makeHttpRequest({
-        method: "POST",
-        url: "https://paper-api.alpaca.markets/v2/orders",
-        headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "APCA-API-KEY-ID": secrets.alpacaKey,
-            "APCA-API-SECRET-KEY": secrets.alpacaSecret,
-        },
-        data: {
-            side: "sell",
-            type: "market",
-            time_in_force: "gtc",
-            symbol: symbol,
-            qty: qty,
-            client_order_id: nonceId,
-        },
-    })
-
-    const responseRaw = await alpacaSellRequest
-    const response = responseRaw.data
-
-    return response.id
-}
-
 async function placeOrderBuy(symbol, qty, nonceId) {
+    // TODO, something is wrong with this request, need to fix
     const alpacaBuyRequest = Functions.makeHttpRequest({
         method: "POST",
         url: "https://paper-api.alpaca.markets/v2/orders",
@@ -137,33 +90,34 @@ async function placeOrderBuy(symbol, qty, nonceId) {
     return response.id
 }
 
-async function orderDetails(order_id) {
-    const alpacaOrderDetailsRequest = Functions.makeHttpRequest({
-        method: "GET",
-        url: `https://paper-api.alpaca.markets/v2/orders/${order_id}`,
+async function placeOrderSell(symbol, qty) {
+    // TODO, something is wrong with this request, need to fix
+    const alpacaBuyRequest = Functions.makeHttpRequest({
+        method: "POST",
+        url: "https://paper-api.alpaca.markets/v2/orders",
         headers: {
             accept: "application/json",
+            "content-type": "application/json",
             "APCA-API-KEY-ID": secrets.alpacaKey,
             "APCA-API-SECRET-KEY": secrets.alpacaSecret,
         },
+        data: {
+            side: "buy",
+            type: "market",
+            time_in_force: "day",
+            symbol: symbol,
+            notional: qty,
+        },
     })
 
-    const responseDetailsRaw = await alpacaOrderDetailsRequest
+    const responseRaw = await alpacaBuyRequest
+    const response = responseRaw.data
 
-    const responseDetails = responseDetailsRaw.data
-
-    return responseDetails
+    return response.id
 }
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-function calculateFilledAmount(filled_qty, filled_avg_price) {
-    const filledQty = parseFloat(filled_qty)
-    const filledAvgPrice = parseFloat(filled_avg_price)
-
-    return filledQty * filledAvgPrice
 }
 
 const result = await main()

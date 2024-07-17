@@ -7,48 +7,32 @@ const { verify } = require("../utils/verify")
 const { getAccount } = require("../utils/getAccount")
 const { uploadSecrets } = require("../functions/uploadSecrets")
 const { getGasPrice } = require("../utils/getGasPrice")
+const { incrementNonce } = require("../utils/incrementNonce")
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy, log } = deployments
     let rpcUrl = network.config.url
-    let provider = new ethers.providers.JsonRpcProvider(rpcUrl)
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
-    const chainlinkSubId = process.env.CHAINLINK_SUB_ID
-    const mintSourceCode = fs
-        .readFileSync("./functions/sources/alpacaBuyStock.js")
-        .toString()
-
     const gasMultiplier = 1.2
-    const versionDon = await uploadSecrets(
-        getAccount("main", provider),
-        chainId,
-    )
-    const slotDon = 0
-
     const FUNCTIONS_ROUTER = networkConfig[chainId].FUNCTIONS_ROUTER
     const USDC = networkConfig[chainId].USDC
-    const DON_ID = networkConfig[chainId].DON_ID
     const stockName = "TSLA"
-
-    const donIdBytes32 = ethers.utils.arrayify(`0x${DON_ID}`)
 
     console.log(await getGasPrice())
 
     const dStorageDeployment = await deployments.get("dStockSourceCodeStorage")
     const dStoarageAddress = dStorageDeployment.address
 
+    const nonce = await incrementNonce()
+
     const constructorArgs = [
-        mintSourceCode,
-        chainlinkSubId,
         FUNCTIONS_ROUTER,
         USDC,
-        donIdBytes32,
-        versionDon,
-        slotDon,
         stockName,
         dStoarageAddress,
+        nonce,
     ]
 
     const dStockDeploy = await deploy("dSTOCK", {

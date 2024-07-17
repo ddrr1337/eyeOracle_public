@@ -1,26 +1,19 @@
-const requestBuyStock = require("../configs/alpacaBuyStockConfig.js")
+const { requestConfigFunction } = require("../configs/alpacaBuyStockConfig.js")
 const { simulateScript, decodeResult } = require("@chainlink/functions-toolkit")
 
 async function main() {
+    const requestConfig = await requestConfigFunction()
+
     const { responseBytesHexstring, errorString } =
-        await simulateScript(requestBuyStock)
+        await simulateScript(requestConfig)
 
     if (responseBytesHexstring) {
         console.log(
-            `Response returned by script during local simulation: ${Number(
-                decodeResult(
-                    responseBytesHexstring,
-                    requestBuyStock.expectedReturnType,
-                ).toString(),
-            )}\n`,
-        )
-        /* console.log(
             `Response returned by script during local simulation: ${decodeResult(
                 responseBytesHexstring,
-                requestBuyStock.expectedReturnType,
+                requestConfig.expectedReturnType,
             ).toString()}\n`,
-        ) */
-        console.log("HEXResponse: ", responseBytesHexstring)
+        )
     }
 
     if (errorString) {

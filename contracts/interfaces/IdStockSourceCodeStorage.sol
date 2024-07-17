@@ -15,6 +15,8 @@ interface IdStockSourceCodeStorage {
 
     function subId() external view returns (uint64);
 
+    function httpRequestNonce() external view returns (uint256);
+
     function donId() external view returns (bytes32);
 
     function secretVersion() external view returns (uint64);
@@ -24,4 +26,14 @@ interface IdStockSourceCodeStorage {
     function s_mintSourceCode() external view returns (string memory);
 
     function s_redeemSourceCode() external view returns (string memory);
+
+    function getVariables()
+        external
+        view
+        returns (
+            uint64 _subId,
+            bytes32 _donId,
+            uint64 _secretVersion,
+            uint8 _secretSlot
+        );
 }

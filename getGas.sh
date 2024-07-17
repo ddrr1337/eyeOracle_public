@@ -2,7 +2,7 @@
 
 # Comprueba si se ha pasado un parámetro
 if [ -z "$1" ]; then
-  echo "Uso: $0 <nombre_red>"
+  echo "Usage: $0 <network_name>"
   exit 1
 fi
 
