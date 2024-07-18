@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-interface IdStockSourceCodeStorage {
+interface IdStockStorage {
     function changeSubIdAndDonId(uint64 _subId, bytes32 _donId) external;
 
     function changeSlotAndVersionDon(

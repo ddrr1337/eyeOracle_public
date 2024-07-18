@@ -20,7 +20,7 @@ async function main() {
 
     const versionDon = await uploadSecrets(account, chainId)
     const slotDon = 0
-    const dStorageDeployment = await deployments.get("dStockSourceCodeStorage")
+    const dStorageDeployment = await deployments.get("dStockStorage")
     const dStorageAddress = dStorageDeployment.address
     const dStorageAbi = dStorageDeployment.abi
 

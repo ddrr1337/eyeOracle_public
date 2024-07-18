@@ -34,7 +34,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     const constructorArgs = [nextNonce]
 
-    const dStorageDeploy = await deploy("dStockSourceCodeStorage", {
+    const dStorageDeploy = await deploy("dStockStorage", {
         from: deployer,
         args: constructorArgs,
         log: true,

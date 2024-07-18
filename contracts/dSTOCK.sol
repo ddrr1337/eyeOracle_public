@@ -7,7 +7,7 @@ import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/Confir
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {IdStockSourceCodeStorage} from "./interfaces/IdStockSourceCodeStorage.sol";
+import {IdStockStorage} from "./interfaces/IdStockStorage.sol";
 
 contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
     uint256 public httpRequestNonce;
@@ -90,7 +90,8 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
             bytes32 donId,
             uint64 secretVersion,
             uint8 secretSlot
-        ) = IdStockSourceCodeStorage(i_storeSorceCodeAddress).getVariables();
+        ) = IdStockStorage(i_storeSorceCodeAddress).getVariables();
+        uint256 nonce = getNonce();
 
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(getMintCode());
@@ -147,9 +148,8 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
     //////////////////////////////////////////////////////////////*/
 
     function getMintCode() public view returns (string memory) {
-        string memory mintCode = IdStockSourceCodeStorage(
-            i_storeSorceCodeAddress
-        ).s_mintSourceCode();
+        string memory mintCode = IdStockStorage(i_storeSorceCodeAddress)
+            .s_mintSourceCode();
         return mintCode;
     }
 
@@ -178,19 +178,25 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
             bytes32 donId,
             uint64 secretVersion,
             uint8 secretSlot
-        ) = IdStockSourceCodeStorage(i_storeSorceCodeAddress).getVariables();
+        ) = IdStockStorage(i_storeSorceCodeAddress).getVariables();
 
         return (subId, donId, secretVersion, secretSlot);
     }
 
-    function tester() public view returns (string memory) {
-        string memory testName = this.name();
-        return testName;
+    function changeNonce(uint256 nonce) public {
+        httpRequestNonce = nonce;
+    }
+
+    function getNonce() public view returns (uint256) {
+        uint256 nonce = IdStockStorage(i_storeSorceCodeAddress)
+            .httpRequestNonce();
+        return nonce;
     }
 
     //////////////// TESTING ////////////////
 
-    function changeNonce(uint256 nonce) public {
-        httpRequestNonce = nonce;
+    function tester() public view returns (string memory) {
+        string memory testName = this.name();
+        return testName;
     }
 }

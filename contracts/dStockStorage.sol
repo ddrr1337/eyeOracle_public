@@ -3,7 +3,7 @@ pragma solidity 0.8.25;
 
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 
-contract dStockSourceCodeStorage is ConfirmedOwner {
+contract dStockStorage is ConfirmedOwner {
     string public s_mintSourceCode;
     string public s_redeemSourceCode;
 

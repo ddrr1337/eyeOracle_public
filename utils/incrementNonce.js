@@ -15,6 +15,7 @@ async function incrementNonce() {
         await fs.writeFile(filePath, number.toString())
 
         // Return the new number
+        console.log("Using Nonce: ", number)
         return number
     } catch (error) {
         console.error("Error processing the file:", error)

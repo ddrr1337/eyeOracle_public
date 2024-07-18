@@ -22,7 +22,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     console.log(await getGasPrice())
 
-    const dStorageDeployment = await deployments.get("dStockSourceCodeStorage")
+    const dStorageDeployment = await deployments.get("dStockStorage")
     const dStoarageAddress = dStorageDeployment.address
 
     const nonce = await incrementNonce()

@@ -1,11 +1,15 @@
 const SLEEP_TIME = 2000 // 2 seconds
 const cryptoAsset = "USDC/USD"
 
-if (secrets.alpacaKey == "" || secrets.alpacaSecret == "") {
-    throw Error("Need Apalaca Keys")
+const headers = {
+    accept: "application/json",
+    "content-type": "application/json",
+    "APCA-API-KEY-ID": secrets.alpacaKey,
+    "APCA-API-SECRET-KEY": secrets.alpacaSecret,
 }
 
 async function main() {
+    _checkKeys()
     const stockTicker = args[0]
     const amountQty = args[1]
     const nonce = args[2]
@@ -17,43 +21,64 @@ async function main() {
     const checkOrder = await checkOpenedOrder(nonce)
 
     if (checkOrder == "01") {
-        const order_id = await placeOrderSell(cryptoAsset, amountQty, nonce)
+        const order_id_sell = await placeOrderSell(
+            cryptoAsset,
+            amountQty,
+            nonce,
+        )
         await sleep(SLEEP_TIME)
-        const orderDataSell = await orderDetails(order_id)
+        const {
+            responseDetails: detailsUsdcSell,
+            responseStatus: responseStatusSell,
+        } = await orderDetails(order_id_sell)
 
-        if (!orderDataSell.status == "filled") {
+        if (!detailsUsdcSell.status == "filled") {
             return Functions.encodeUint256(0)
         }
-        const filledQty = calculateFilledAmount(
-            orderDataSell.filled_qty,
-            orderDataSell.filled_avg_price,
+        const usdReturnedRaw = calculateFilledAmount(
+            detailsUsdcSell.filled_qty,
+            detailsUsdcSell.filled_avg_price,
+        )
+        const usdReturned = usdReturnedRaw.toString()
+
+        const newNonce = nonce + "b"
+
+        const order_id_buy = await placeOrderBuy(
+            stockTicker,
+            usdReturned,
+            newNonce,
+        )
+        await sleep(SLEEP_TIME)
+        const {
+            responseDetails: detailsTslaBuy,
+            responseStatus: responseStatusBuy,
+        } = await orderDetails(order_id_buy)
+
+        const normalizeResponse = parseInt(
+            parseFloat(detailsTslaBuy.filled_qty) * 1e18,
         )
 
-        return Functions.encodeUint256(parseInt(filledQty))
+        return Functions.encodeUint256(normalizeResponse)
     } else {
-        await sleep(SLEEP_TIME)
-        const orderData = await orderDetails(checkOrder)
+        await sleep(SLEEP_TIME * 3)
+        const buyOrderId = await checkOpenedOrder(nonce + "b")
+        const {
+            responseDetails: detailsTslaBuy,
+            responseStatus: responseStatusBuy,
+        } = await orderDetails(buyOrderId)
 
-        if (orderData.status == "filled") {
-            const filledQty = calculateFilledAmount(
-                orderData.filled_qty,
-                orderData.filled_avg_price,
-            )
-            return Functions.encodeUint256(parseInt(filledQty))
-        } else {
-            return Functions.encodeUint256(0)
-        }
+        const normalizeResponse = parseInt(
+            parseFloat(detailsTslaBuy.filled_qty) * 1e18,
+        )
+
+        return Functions.encodeUint256(normalizeResponse)
     }
 }
 
 async function checkMarket() {
     const alpacaRequest = Functions.makeHttpRequest({
         url: "https://paper-api.alpaca.markets/v2/clock",
-        headers: {
-            accept: "application/json",
-            "APCA-API-KEY-ID": secrets.alpacaKey,
-            "APCA-API-SECRET-KEY": secrets.alpacaSecret,
-        },
+        headers: headers,
     })
 
     const [response] = await Promise.all([alpacaRequest])
@@ -66,11 +91,7 @@ async function checkOpenedOrder(nonceId) {
     const openOrderDetails = Functions.makeHttpRequest({
         method: "GET",
         url: `https://paper-api.alpaca.markets/v2/orders?status=all`,
-        headers: {
-            accept: "application/json",
-            "APCA-API-KEY-ID": secrets.alpacaKey,
-            "APCA-API-SECRET-KEY": secrets.alpacaSecret,
-        },
+        headers: headers,
     })
 
     const openOrdersArrayRaw = await openOrderDetails
@@ -89,12 +110,7 @@ async function placeOrderSell(symbol, qty, nonceId) {
     const alpacaSellRequest = Functions.makeHttpRequest({
         method: "POST",
         url: "https://paper-api.alpaca.markets/v2/orders",
-        headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "APCA-API-KEY-ID": secrets.alpacaKey,
-            "APCA-API-SECRET-KEY": secrets.alpacaSecret,
-        },
+        headers: headers,
         data: {
             side: "sell",
             type: "market",
@@ -115,12 +131,7 @@ async function placeOrderBuy(symbol, qty, nonceId) {
     const alpacaBuyRequest = Functions.makeHttpRequest({
         method: "POST",
         url: "https://paper-api.alpaca.markets/v2/orders",
-        headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "APCA-API-KEY-ID": secrets.alpacaKey,
-            "APCA-API-SECRET-KEY": secrets.alpacaSecret,
-        },
+        headers: headers,
         data: {
             side: "buy",
             type: "market",
@@ -133,7 +144,6 @@ async function placeOrderBuy(symbol, qty, nonceId) {
 
     const responseRaw = await alpacaBuyRequest
     const response = responseRaw.data
-
     return response.id
 }
 
@@ -141,18 +151,16 @@ async function orderDetails(order_id) {
     const alpacaOrderDetailsRequest = Functions.makeHttpRequest({
         method: "GET",
         url: `https://paper-api.alpaca.markets/v2/orders/${order_id}`,
-        headers: {
-            accept: "application/json",
-            "APCA-API-KEY-ID": secrets.alpacaKey,
-            "APCA-API-SECRET-KEY": secrets.alpacaSecret,
-        },
+        headers: headers,
     })
 
     const responseDetailsRaw = await alpacaOrderDetailsRequest
 
+    const responseStatus = responseDetailsRaw.status
+
     const responseDetails = responseDetailsRaw.data
 
-    return responseDetails
+    return { responseDetails, responseStatus }
 }
 
 function sleep(ms) {
@@ -162,8 +170,29 @@ function sleep(ms) {
 function calculateFilledAmount(filled_qty, filled_avg_price) {
     const filledQty = parseFloat(filled_qty)
     const filledAvgPrice = parseFloat(filled_avg_price)
+    const result = filledQty * filledAvgPrice
 
-    return filledQty * filledAvgPrice
+    return Math.floor(result * 100) / 100
+}
+
+function _checkKeys() {
+    if (secrets.alpacaKey == "" || secrets.alpacaSecret === "") {
+        throw Error("need alpaca keys")
+    }
+}
+
+async function getCash() {
+    const alpacaAcountRequest = Functions.makeHttpRequest({
+        method: "GET",
+        url: `https://paper-api.alpaca.markets/v2/account`,
+        headers: headers,
+    })
+
+    const accountDetailsRaw = await alpacaAcountRequest
+
+    const accountDetails = accountDetailsRaw.data
+
+    return accountDetails.cash
 }
 
 const result = await main()
