@@ -9,16 +9,6 @@ async function main() {
 
     await getGasPrice()
 
-    const dStockDeployment = await deployments.get("dSTOCK")
-    const dStockAddress = dStockDeployment.address
-    const dStockAbi = dStockDeployment.abi
-
-    const dStockContract = new ethers.Contract(
-        dStockAddress,
-        dStockAbi,
-        account,
-    )
-
     const dStorageDeployment = await deployments.get("dStockStorage")
     const dStorageAddress = dStorageDeployment.address
     const dStorageAbi = dStorageDeployment.abi
@@ -29,20 +19,11 @@ async function main() {
         account,
     )
 
-    const fundTx = await dStorageContract.fundAccount(BigInt(1000 * 1e6))
-    await fundTx.wait(1)
+    const dStorageArray = await dStorageContract.getStocksArray()
 
-    console.log(
-        "-------------------- FUND ACCOUNT WITH USDC COMPLETED -----------------------",
-    )
+    console.log("-------------------- dStorage ARRAY -----------------------")
 
-    const amount = BigInt("250")
-
-    await dStockContract.sendMintRequest(amount)
-
-    console.log(
-        "-------------------- MINT REQUEST COMPLETED -----------------------",
-    )
+    console.log(dStorageArray)
 }
 
 main()

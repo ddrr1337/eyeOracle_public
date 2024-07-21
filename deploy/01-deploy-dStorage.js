@@ -6,7 +6,6 @@ const { verify } = require("../utils/verify")
 const { getAccount } = require("../utils/getAccount")
 const { uploadSecrets } = require("../functions/uploadSecrets")
 const { getGasPrice } = require("../utils/getGasPrice")
-const { incrementNonce } = require("../utils/incrementNonce.js")
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy, log } = deployments
@@ -30,9 +29,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     await getGasPrice()
 
-    const nextNonce = await incrementNonce()
-
-    const constructorArgs = [nextNonce]
+    const constructorArgs = []
 
     const dStorageDeploy = await deploy("dStockStorage", {
         from: deployer,
@@ -57,7 +54,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         .toString()
 
     const redeemSourceCode = fs
-        .readFileSync("./functions/sources/sellTslaAndSendUsdc.js")
+        .readFileSync("./functions/sources/alpacaSellStock.js")
         .toString()
 
     const setMintCodeTx =

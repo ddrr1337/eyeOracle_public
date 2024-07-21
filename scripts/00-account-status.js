@@ -19,6 +19,20 @@ async function main() {
         account,
     )
 
+    const dStockBalance = await dStockContract.balanceOf(account.address)
+
+    console.log(
+        "-------------------- BALANCE OF dStock -----------------------",
+    )
+
+    console.log(
+        "Balance of account: ",
+        account.address,
+        "In ERC20",
+        dStockContract.address,
+    )
+    console.log(parseFloat(dStockBalance), parseFloat(dStockBalance / 1e18))
+
     const dStorageDeployment = await deployments.get("dStockStorage")
     const dStorageAddress = dStorageDeployment.address
     const dStorageAbi = dStorageDeployment.abi
@@ -29,20 +43,18 @@ async function main() {
         account,
     )
 
-    const fundTx = await dStorageContract.fundAccount(BigInt(1000 * 1e6))
-    await fundTx.wait(1)
+    const balanceUsdc = await dStorageContract.userBalance(account.address)
+
+    console.log("-------------------- BALANCE OF USDC -----------------------")
 
     console.log(
-        "-------------------- FUND ACCOUNT WITH USDC COMPLETED -----------------------",
+        "Balance of account:(not tokens transfered just balance setted) ",
+        account.address,
+        "In USDC in contract:",
+        dStorageAddress,
     )
 
-    const amount = BigInt("250")
-
-    await dStockContract.sendMintRequest(amount)
-
-    console.log(
-        "-------------------- MINT REQUEST COMPLETED -----------------------",
-    )
+    console.log(parseFloat(balanceUsdc), parseFloat(balanceUsdc / 1e6))
 }
 
 main()

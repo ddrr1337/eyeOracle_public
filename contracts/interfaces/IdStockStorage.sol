@@ -15,8 +15,6 @@ interface IdStockStorage {
 
     function subId() external view returns (uint64);
 
-    function httpRequestNonce() external view returns (uint256);
-
     function donId() external view returns (bytes32);
 
     function secretVersion() external view returns (uint64);
@@ -36,4 +34,14 @@ interface IdStockStorage {
             uint64 _secretVersion,
             uint8 _secretSlot
         );
+
+    function addStock(address stock) external;
+
+    function getStocksArray() external view returns (address[] memory);
+
+    function fundAccount(address user, uint256 amountUsdc) external;
+
+    function userBalance(address user) external returns (uint256);
+
+    function substractAmount(address user, uint256 amountUsdc) external;
 }

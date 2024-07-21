@@ -8,8 +8,8 @@ async function incrementNonce() {
         // Convert the content to a number
         let number = parseInt(data, 10)
 
-        // Add one to the number
-        number += 1
+        // increment nonce
+        number += 150
 
         // Save the new number to the file
         await fs.writeFile(filePath, number.toString())

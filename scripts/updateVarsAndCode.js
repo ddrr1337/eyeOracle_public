@@ -44,7 +44,7 @@ async function main() {
         .toString()
 
     const redeemSourceCode = fs
-        .readFileSync("./functions/sources/sellTslaAndSendUsdc.js")
+        .readFileSync("./functions/sources/alpacaSellStock.js")
         .toString()
 
     const setMintCodeTx =

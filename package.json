@@ -4,8 +4,9 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "simulateTester": "node ./functions/simulators/alpcaMintSimulator.js",
-    "simulateBuyStock": "node ./functions/simulators/alpacaBuyStockSimulator.js"
+    "simulateBuyStock": "node ./functions/simulators/alpacaBuyStockSimulator.js",
+    "simulateSellStock": "node ./functions/simulators/alpacaSellStockSimulator.js",
+    "simulateTester": "node ./functions/simulators/alpacaTesterSimulator.js"
   },
   "devDependencies": {
     "@chainlink/contracts": "^1.1.1",

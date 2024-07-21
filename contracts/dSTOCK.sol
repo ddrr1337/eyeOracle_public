@@ -30,7 +30,7 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
     mapping(address user => uint256 accountbalance) public userBalance;
 
     struct dStockRequest {
-        uint256 amountUsdcSent;
+        uint256 amountTokenSent;
         address requester;
         MintOrRedeem mintOrRedeem;
     }
@@ -39,11 +39,9 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
     address public immutable i_USDC;
     uint256 public constant USDC_DECIMALS = 10 ** 6;
 
-    string public s_redeemSourceCode;
-
     address public immutable i_storeSorceCodeAddress;
 
-    uint32 constant GAS_LIMIT = 300_000;
+    uint32 public constant GAS_LIMIT = 300_000;
     uint256 constant MINIMUM_WITHDRAW_AMOUNT = 100 * 1e6;
 
     mapping(bytes32 requestId => dStockRequest request)
@@ -68,22 +66,17 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
 
         i_storeSorceCodeAddress = storeSorceCodeAddress;
         httpRequestNonce = nonce;
-    }
 
-    function setRedeemCode(string memory redeemSourceCode) external onlyOwner {
-        s_redeemSourceCode = redeemSourceCode;
-    }
-
-    function fundAccount(uint256 amountToFund) external {
-        userBalance[msg.sender] += amountToFund;
+        IdStockStorage(i_storeSorceCodeAddress).addStock(address(this));
     }
 
     function sendMintRequest(
         uint256 amountUSDC
     ) external onlyOwner returns (bytes32) {
         require(
-            amountUSDC * USDC_DECIMALS < userBalance[msg.sender],
-            "Not enought usdc balance, fund contract first"
+            IdStockStorage(i_storeSorceCodeAddress).userBalance(msg.sender) >=
+                amountUSDC,
+            "Not enought balance in store contract"
         );
         (
             uint64 subId,
@@ -91,15 +84,15 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
             uint64 secretVersion,
             uint8 secretSlot
         ) = IdStockStorage(i_storeSorceCodeAddress).getVariables();
-        uint256 nonce = getNonce();
 
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(getMintCode());
         req.addDONHostedSecrets(secretSlot, secretVersion);
         string[] memory args = new string[](3);
-        args[0] = "TSLA";
+        args[0] = this.name();
         args[1] = amountUSDC.toString();
         args[2] = httpRequestNonce.toString();
+
         req.setArgs(args);
 
         bytes32 requestId = _sendRequest(
@@ -121,17 +114,54 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         bytes32 requestId,
         bytes memory response
     ) internal {
-        /*         if (uint256(bytes32(response)) != 0) {
+        if (uint256(bytes32(response)) != 0) {
             // substract amountUSDC used
             address requester = s_requestIdToRequest[requestId].requester;
             uint256 usdcAmountSent = s_requestIdToRequest[requestId]
-                .amountUsdcSent;
-            userBalance[requester] -= usdcAmountSent;
+                .amountTokenSent;
+
+            IdStockStorage(i_storeSorceCodeAddress).substractAmount(
+                requester,
+                usdcAmountSent
+            );
+
             _mint(requester, uint256(bytes32(response)));
-        } */
+        }
     }
 
-    function sendRedeemRequest() external {}
+    function sendRedeemRequest(
+        uint256 amountStock
+    ) external onlyOwner returns (bytes32) {
+        (
+            uint64 subId,
+            bytes32 donId,
+            uint64 secretVersion,
+            uint8 secretSlot
+        ) = IdStockStorage(i_storeSorceCodeAddress).getVariables();
+
+        FunctionsRequest.Request memory req;
+        req.initializeRequestForInlineJavaScript(getRedeemCode());
+        req.addDONHostedSecrets(secretSlot, secretVersion);
+        string[] memory args = new string[](3);
+        args[0] = "TSLA";
+        args[1] = "998058375000000000";
+        args[2] = httpRequestNonce.toString();
+        req.setArgs(args);
+
+        bytes32 requestId = _sendRequest(
+            req.encodeCBOR(),
+            subId,
+            GAS_LIMIT,
+            donId
+        );
+        s_requestIdToRequest[requestId] = dStockRequest(
+            amountStock,
+            msg.sender,
+            MintOrRedeem.redeem
+        );
+        httpRequestNonce++;
+        return requestId;
+    }
 
     function _redeemFulFillRequest() public {}
 
@@ -140,7 +170,11 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         bytes memory response,
         bytes memory /*err*/
     ) internal override {
-        _mintFulfillRequest(requestId, response);
+        if (s_requestIdToRequest[requestId].mintOrRedeem == MintOrRedeem.mint) {
+            _mintFulfillRequest(requestId, response);
+        } else {
+            _redeemFulFillRequest();
+        }
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -151,6 +185,12 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         string memory mintCode = IdStockStorage(i_storeSorceCodeAddress)
             .s_mintSourceCode();
         return mintCode;
+    }
+
+    function getRedeemCode() public view returns (string memory) {
+        string memory redeemCode = IdStockStorage(i_storeSorceCodeAddress)
+            .s_redeemSourceCode();
+        return redeemCode;
     }
 
     function getRequest(
@@ -185,12 +225,6 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
 
     function changeNonce(uint256 nonce) public {
         httpRequestNonce = nonce;
-    }
-
-    function getNonce() public view returns (uint256) {
-        uint256 nonce = IdStockStorage(i_storeSorceCodeAddress)
-            .httpRequestNonce();
-        return nonce;
     }
 
     //////////////// TESTING ////////////////

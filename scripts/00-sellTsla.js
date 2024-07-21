@@ -19,29 +19,14 @@ async function main() {
         account,
     )
 
-    const dStorageDeployment = await deployments.get("dStockStorage")
-    const dStorageAddress = dStorageDeployment.address
-    const dStorageAbi = dStorageDeployment.abi
+    console.log("Instance contract address: ", dStockContract.address)
 
-    const dStorageContract = new ethers.Contract(
-        dStorageAddress,
-        dStorageAbi,
-        account,
-    )
+    const amount = BigInt("998058375000000000")
 
-    const fundTx = await dStorageContract.fundAccount(BigInt(1000 * 1e6))
-    await fundTx.wait(1)
+    await dStockContract.sendRedeemRequest(amount)
 
     console.log(
-        "-------------------- FUND ACCOUNT WITH USDC COMPLETED -----------------------",
-    )
-
-    const amount = BigInt("250")
-
-    await dStockContract.sendMintRequest(amount)
-
-    console.log(
-        "-------------------- MINT REQUEST COMPLETED -----------------------",
+        "-------------------- SELL REQUEST COMPLETED -----------------------",
     )
 }
 

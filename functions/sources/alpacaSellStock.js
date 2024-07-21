@@ -1,4 +1,4 @@
-// Buy stock in broker
+//Sell stock in broker
 const SLEEP_TIME = 2000 // 2 seconds
 const cryptoAsset = "USDC/USD"
 
@@ -14,67 +14,71 @@ async function main() {
     const stockTicker = args[0]
     const amountQty = args[1]
     const nonce = args[2]
-    const marketStatus = await checkMarket()
 
     const sellNonce = nonce + "s"
     const buyNonce = nonce + "b"
+    const denormalizeAmount = denormalizeResponse(amountQty)
+
+    const marketStatus = await checkMarket()
 
     if (!marketStatus) {
-        return Functions.encodeUint256(100 * 1e6)
+        return Functions.encodeString(nonce)
     }
 
     const checkOrder = await checkOpenedOrder(sellNonce)
 
     if (checkOrder == "01") {
         const order_id_sell = await placeOrderSell(
-            cryptoAsset,
-            amountQty,
+            stockTicker,
+            denormalizeAmount,
             sellNonce,
         )
         await sleep(SLEEP_TIME)
         const {
-            responseDetails: detailsUsdcSell,
+            responseDetails: detailsStockSell,
             responseStatus: responseStatusSell,
         } = await orderDetails(order_id_sell)
 
-        if (!detailsUsdcSell.status == "filled") {
+        if (!detailsStockSell.status == "filled") {
             return Functions.encodeUint256(0)
         }
         const usdReturnedRaw = calculateFilledAmount(
-            detailsUsdcSell.filled_qty,
-            detailsUsdcSell.filled_avg_price,
+            detailsStockSell.filled_qty,
+            detailsStockSell.filled_avg_price,
         )
-        const usdReturned = usdReturnedRaw.toString()
+        const usdReturned = parseInt(usdReturnedRaw).toString()
 
         const order_id_buy = await placeOrderBuy(
-            stockTicker,
+            cryptoAsset,
             usdReturned,
             buyNonce,
         )
         await sleep(SLEEP_TIME)
         const {
-            responseDetails: detailsStockBuy,
+            responseDetails: detailsUsdcBuy,
             responseStatus: responseStatusBuy,
         } = await orderDetails(order_id_buy)
-
-        if (!detailsStockBuy.status == "filled") {
+        if (!detailsUsdcBuy.status == "filled") {
             return Functions.encodeUint256(0)
         }
+        const normalizedFilled = parseInt(
+            parseFloat(detailsUsdcBuy.filled_qty) * 1e6,
+        )
 
-        const amountFilled = normalizeResponse(detailsStockBuy.filled_qty)
-
-        return Functions.encodeUint256(amountFilled)
+        return Functions.encodeString(detailsUsdcBuy.filled_qty)
     } else {
         await sleep(SLEEP_TIME * 3)
         const buyOrderId = await checkOpenedOrder(buyNonce)
         const {
-            responseDetails: detailsTslaBuy,
+            responseDetails: detailsUsdcBuy,
             responseStatus: responseStatusBuy,
         } = await orderDetails(buyOrderId)
 
-        const amountFilled = normalizeResponse(detailsTslaBuy.filled_qty)
+        const normalizedFilled = parseInt(
+            parseFloat(detailsUsdcBuy.filled_qty) * 1e6,
+        )
 
-        return Functions.encodeUint256(amountFilled)
+        return Functions.encodeString(detailsUsdcBuy.filled_qty)
     }
 }
 
@@ -117,7 +121,7 @@ async function placeOrderSell(symbol, qty, nonceId) {
         data: {
             side: "sell",
             type: "market",
-            time_in_force: "gtc",
+            time_in_force: "day",
             symbol: symbol,
             qty: qty,
             client_order_id: nonceId,
@@ -138,7 +142,7 @@ async function placeOrderBuy(symbol, qty, nonceId) {
         data: {
             side: "buy",
             type: "market",
-            time_in_force: "day",
+            time_in_force: "gtc",
             symbol: symbol,
             notional: qty,
             client_order_id: nonceId,
@@ -206,7 +210,7 @@ function normalizeResponse(stringAmount) {
     const decimals = decimalPart ? decimalPart : "0"
 
     // Calcula la cantidad de decimales que necesitamos agregar
-    const totalDecimals = 18
+    const totalDecimals = 6
 
     // Concatenamos la parte entera y la parte decimal, agregando ceros al final si es necesario
     let scaledQtyStr = integerPart + decimals.padEnd(totalDecimals, "0")
@@ -218,6 +222,30 @@ function normalizeResponse(stringAmount) {
 
     // Convertimos la cadena a número para retornar
     return BigInt(scaledQtyStr)
+}
+
+function denormalizeResponse(scaledQtyStr) {
+    // Convertimos la cadena de entrada en un BigInt para hacer la división
+    const bigIntValue = BigInt(scaledQtyStr)
+
+    // Dividimos por 1e18
+    const divisor = BigInt(1e18)
+    const dividedValue = bigIntValue / divisor
+    const remainder = bigIntValue % divisor
+
+    // Convertimos los valores divididos y resto a cadenas
+    const integerPart = dividedValue.toString()
+    const decimalPart = remainder
+        .toString()
+        .padStart(18, "0")
+        .replace(/0+$/, "")
+
+    // Construimos el resultado como una cadena
+    if (decimalPart === "") {
+        return integerPart // No hay parte decimal
+    } else {
+        return `${integerPart}.${decimalPart}`
+    }
 }
 
 const result = await main()
