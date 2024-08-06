@@ -65,7 +65,7 @@ async function main() {
             parseFloat(detailsUsdcBuy.filled_qty) * 1e6,
         )
 
-        return Functions.encodeString(detailsUsdcBuy.filled_qty)
+        return Functions.encodeUint256(normalizedFilled)
     } else {
         await sleep(SLEEP_TIME * 3)
         const buyOrderId = await checkOpenedOrder(buyNonce)
@@ -74,11 +74,15 @@ async function main() {
             responseStatus: responseStatusBuy,
         } = await orderDetails(buyOrderId)
 
+        if (!detailsUsdcBuy.status == "filled") {
+            return Functions.encodeUint256(0)
+        }
+
         const normalizedFilled = parseInt(
             parseFloat(detailsUsdcBuy.filled_qty) * 1e6,
         )
 
-        return Functions.encodeString(detailsUsdcBuy.filled_qty)
+        return Functions.encodeUint256(normalizedFilled)
     }
 }
 
@@ -200,28 +204,6 @@ async function getCash() {
     const accountDetails = accountDetailsRaw.data
 
     return accountDetails.cash
-}
-
-function normalizeResponse(stringAmount) {
-    // Separa la parte entera y decimal
-    const [integerPart, decimalPart] = stringAmount.split(".")
-
-    // Si no hay parte decimal, agrega una
-    const decimals = decimalPart ? decimalPart : "0"
-
-    // Calcula la cantidad de decimales que necesitamos agregar
-    const totalDecimals = 6
-
-    // Concatenamos la parte entera y la parte decimal, agregando ceros al final si es necesario
-    let scaledQtyStr = integerPart + decimals.padEnd(totalDecimals, "0")
-
-    // Si la longitud es menor que 18, completamos con ceros
-    if (scaledQtyStr.length < totalDecimals) {
-        scaledQtyStr = scaledQtyStr.padEnd(totalDecimals, "0")
-    }
-
-    // Convertimos la cadena a número para retornar
-    return BigInt(scaledQtyStr)
 }
 
 function denormalizeResponse(scaledQtyStr) {

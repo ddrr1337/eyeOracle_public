@@ -35,7 +35,7 @@ interface IdStockStorage {
             uint8 _secretSlot
         );
 
-    function addStock(address stock) external;
+    function addStock(string memory name, address stock) external;
 
     function getStocksArray() external view returns (address[] memory);
 

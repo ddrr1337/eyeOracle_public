@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: MIT
-// 1. Pragma
 pragma solidity 0.8.25;
 
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
+import {IFunctionsBilling} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/interfaces/IFunctionsBilling.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IdStockStorage} from "./interfaces/IdStockStorage.sol";
 
 contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
+    event MintFulfilled(address indexed requester, bytes32 indexed requestId);
+    event SendMintRequest(address indexed requester, bytes32 indexed requestId);
+
     uint256 public httpRequestNonce;
 
     using FunctionsRequest for FunctionsRequest.Request;
@@ -50,6 +53,10 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
     mapping(address user => uint256 pendingWithdrawAmount)
         public s_userToWithdrawAmount;
 
+    // TESTING
+    bytes32 public testRequestID;
+    uint96 public linkFeeTest;
+
     constructor(
         address FUNCTIONS_ROUTER,
         address USDC,
@@ -67,15 +74,17 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         i_storeSorceCodeAddress = storeSorceCodeAddress;
         httpRequestNonce = nonce;
 
-        IdStockStorage(i_storeSorceCodeAddress).addStock(address(this));
+        IdStockStorage(i_storeSorceCodeAddress).addStock(
+            string(abi.encodePacked("d", stockName)),
+            address(this)
+        );
     }
 
-    function sendMintRequest(
-        uint256 amountUSDC
-    ) external onlyOwner returns (bytes32) {
+    //imput in eth units
+    function sendMintRequest(uint256 amountUSDC) external returns (bytes32) {
         require(
             IdStockStorage(i_storeSorceCodeAddress).userBalance(msg.sender) >=
-                amountUSDC,
+                amountUSDC * USDC_DECIMALS,
             "Not enought balance in store contract"
         );
         (
@@ -107,6 +116,8 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
             MintOrRedeem.mint
         );
         httpRequestNonce++;
+        emit SendMintRequest(msg.sender, requestId);
+
         return requestId;
     }
 
@@ -114,9 +125,10 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         bytes32 requestId,
         bytes memory response
     ) internal {
+        address requester = s_requestIdToRequest[requestId].requester;
         if (uint256(bytes32(response)) != 0) {
             // substract amountUSDC used
-            address requester = s_requestIdToRequest[requestId].requester;
+
             uint256 usdcAmountSent = s_requestIdToRequest[requestId]
                 .amountTokenSent;
 
@@ -125,13 +137,20 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
                 usdcAmountSent
             );
 
+            testRequestID = requestId;
+
             _mint(requester, uint256(bytes32(response)));
         }
+        emit MintFulfilled(requester, requestId);
     }
 
     function sendRedeemRequest(
         uint256 amountStock
     ) external onlyOwner returns (bytes32) {
+        require(
+            balanceOf(msg.sender) >= amountStock,
+            "Not enough dSTOCK balance"
+        );
         (
             uint64 subId,
             bytes32 donId,
@@ -143,8 +162,8 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         req.initializeRequestForInlineJavaScript(getRedeemCode());
         req.addDONHostedSecrets(secretSlot, secretVersion);
         string[] memory args = new string[](3);
-        args[0] = "TSLA";
-        args[1] = "998058375000000000";
+        args[0] = this.name();
+        args[1] = amountStock.toString();
         args[2] = httpRequestNonce.toString();
         req.setArgs(args);
 
@@ -160,10 +179,22 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
             MintOrRedeem.redeem
         );
         httpRequestNonce++;
+        _burn(msg.sender, amountStock);
         return requestId;
     }
 
-    function _redeemFulFillRequest() public {}
+    function _redeemFulFillRequest(
+        bytes32 requestId,
+        bytes memory response
+    ) internal {
+        if (uint256(bytes32(response)) == 0) {
+            address requester = s_requestIdToRequest[requestId].requester;
+            uint256 dStockAmountSent = s_requestIdToRequest[requestId]
+                .amountTokenSent;
+            _mint(requester, dStockAmountSent);
+        }
+        testRequestID = requestId;
+    }
 
     function fulfillRequest(
         bytes32 requestId,
@@ -173,7 +204,7 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         if (s_requestIdToRequest[requestId].mintOrRedeem == MintOrRedeem.mint) {
             _mintFulfillRequest(requestId, response);
         } else {
-            _redeemFulFillRequest();
+            _redeemFulFillRequest(requestId, response);
         }
     }
 

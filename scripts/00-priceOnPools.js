@@ -9,21 +9,21 @@ async function main() {
 
     await getGasPrice()
 
-    const dStockDeployment = await deployments.get("dSTOCK")
-    //const dStockAddress = dStockDeployment.address
-    const dStockAddress = "0x3B4f07f6BE386B46f60aE5F34B743179D17Bd593"
-    const dStockAbi = dStockDeployment.abi
+    const dStorageDeployment = await deployments.get("dStockStorage")
+    const dStorageAddress = dStorageDeployment.address
+    const dStorageAbi = dStorageDeployment.abi
 
-    const dStockContract = new ethers.Contract(
-        dStockAddress,
-        dStockAbi,
+    const dStorageContract = new ethers.Contract(
+        dStorageAddress,
+        dStorageAbi,
         account,
     )
 
-    const mintCode = await dStockContract.getMintCode()
+    const userBalances = await dStorageContract.getPriceOnPools(account.address)
 
-    console.log(mintCode)
-    console.log("-------------------- MINT CODE -----------------------")
+    console.log("-------------------- USER BALANCES -----------------------")
+
+    console.log(userBalances)
 }
 
 main()

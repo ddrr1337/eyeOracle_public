@@ -1,0 +1,5 @@
+deploy storage
+deploy stocks
+    send new stock addresses to backend
+update source code
+approve stocks contracts at chainlink

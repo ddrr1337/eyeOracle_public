@@ -9,25 +9,23 @@ async function main() {
 
     await getGasPrice()
 
-    const dStockDeployment = await deployments.get("dSTOCK")
-    const dStockAddress = dStockDeployment.address
-    const dStockAbi = dStockDeployment.abi
+    const dStorageDeployment = await deployments.get("dStockStorage")
+    const dStorageAddress = dStorageDeployment.address
+    const dStorageAbi = dStorageDeployment.abi
 
-    const dStockContract = new ethers.Contract(
-        dStockAddress,
-        dStockAbi,
+    const dStorageContract = new ethers.Contract(
+        dStorageAddress,
+        dStorageAbi,
         account,
     )
 
-    console.log("Instance contract address: ", dStockContract.address)
-
-    const amount = BigInt("998058375000000000")
-
-    await dStockContract.sendRedeemRequest(amount)
-
-    console.log(
-        "-------------------- SELL REQUEST COMPLETED -----------------------",
+    const userBalances = await dStorageContract.getUserStockBalances(
+        account.address,
     )
+
+    console.log("-------------------- USER BALANCES -----------------------")
+
+    console.log(userBalances)
 }
 
 main()

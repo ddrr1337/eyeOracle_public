@@ -19,19 +19,15 @@ async function main() {
         account,
     )
 
-    const dStockBalance = await dStockContract.balanceOf(account.address)
+    console.log("Instance contract address: ", dStockContract.address)
+
+    const amount = await dStockContract.balanceOf(account.address)
+
+    await dStockContract.sendRedeemRequest(amount)
 
     console.log(
-        "-------------------- BALANCE OF dStock -----------------------",
+        "-------------------- SELL REQUEST COMPLETED -----------------------",
     )
-
-    console.log(
-        "Balance of account: ",
-        account.address,
-        "In ERC20",
-        dStockContract.address,
-    )
-    console.log(parseFloat(dStockBalance), parseFloat(dStockBalance / 1e18))
 }
 
 main()

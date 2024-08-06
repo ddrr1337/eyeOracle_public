@@ -14,22 +14,19 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
-    const chainlinkSubId = process.env.CHAINLINK_SUB_ID
-
     const gasMultiplier = 1.2
 
-    const slotDon = 0
-    const versionDon = await uploadSecrets(
-        getAccount("main", provider),
-        chainId,
-    )
+    function getRandomInt() {
+        const min = 1
+        const max = 10000000
+        return Math.floor(Math.random() * (max - min + 1)) + min
+    }
 
-    const DON_ID = networkConfig[chainId].DON_ID
-    const donIdBytes32 = ethers.utils.arrayify(`0x${DON_ID}`)
+    const deployCompile = getRandomInt()
 
     await getGasPrice()
 
-    const constructorArgs = []
+    const constructorArgs = [deployCompile]
 
     const dStorageDeploy = await deploy("dStockStorage", {
         from: deployer,
@@ -47,43 +44,6 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         dStorageDeploy.address,
         dStorageDeploy.abi,
         getAccount("main", provider),
-    )
-
-    const mintSourceCode = fs
-        .readFileSync("./functions/sources/alpacaBuyStock.js")
-        .toString()
-
-    const redeemSourceCode = fs
-        .readFileSync("./functions/sources/alpacaSellStock.js")
-        .toString()
-
-    const setMintCodeTx =
-        await dStockStorageContract.setMintCode(mintSourceCode)
-    await setMintCodeTx.wait(1)
-    console.log(
-        "----------------------- MINT CODE UPLOADED --------------------------",
-    )
-    const setRedeemCondeTx =
-        await dStockStorageContract.setRedeemCode(redeemSourceCode)
-
-    await setRedeemCondeTx.wait(1)
-
-    console.log(
-        "----------------------- REDEEM CODE UPLOADED --------------------------",
-    )
-
-    const setSubIdDonIdTx = await dStockStorageContract.changeSubIdAndDonId(
-        chainlinkSubId,
-        donIdBytes32,
-    )
-
-    await setSubIdDonIdTx.wait(1)
-
-    const setSlotVersionTx =
-        await dStockStorageContract.changeSlotAndVersionDon(versionDon, slotDon)
-
-    console.log(
-        "----------------------- ROUTER,LINKID,DONID,SLOR,VERSION SETTED --------------------------",
     )
 
     const verifyContract = networkConfig[chainId].verify

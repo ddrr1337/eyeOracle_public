@@ -8,8 +8,12 @@ const headers = {
     "APCA-API-KEY-ID": secrets.alpacaKey,
     "APCA-API-SECRET-KEY": secrets.alpacaSecret,
 }
+function getRandomNumber() {
+    return Math.floor(Math.random() * SLEEP_TIME) + 1
+}
 
 async function main() {
+    await sleep(getRandomNumber())
     _checkKeys()
     const stockTicker = args[0]
     const amountQty = args[1]
@@ -20,7 +24,7 @@ async function main() {
     const buyNonce = nonce + "b"
 
     if (!marketStatus) {
-        return Functions.encodeUint256(100 * 1e6)
+        return Functions.encodeUint256(0)
     }
 
     const checkOrder = await checkOpenedOrder(sellNonce)

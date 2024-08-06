@@ -1,6 +1,10 @@
+const dns = require("node:dns")
+dns.setDefaultResultOrder("ipv4first")
+
 const { ethers, deployments, network } = require("hardhat")
 const { getAccount } = require("../utils/getAccount")
 const { getGasPrice } = require("../utils/getGasPrice")
+const { sendContracts } = require("../utils/sendContracts")
 
 async function main() {
     const rpcUrl = network.config.url
@@ -24,6 +28,8 @@ async function main() {
     console.log("-------------------- dSTOCKs ARRAY -----------------------")
 
     console.log(dStorageArray)
+
+    await sendContracts(dStorageArray)
 }
 
 main()
