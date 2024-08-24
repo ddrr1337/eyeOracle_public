@@ -29,7 +29,11 @@ async function main() {
 
     console.log(dStorageArray)
 
-    await sendContracts(dStorageArray)
+    const localBackend = process.env.LOCAL_BACKEND
+    const deployedBackend = process.env.DEPLOYED_BACKEND
+
+    await sendContracts(dStorageArray, localBackend)
+    await sendContracts(dStorageArray, deployedBackend)
 }
 
 main()

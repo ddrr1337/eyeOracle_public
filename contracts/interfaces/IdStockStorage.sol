@@ -15,6 +15,10 @@ interface IdStockStorage {
 
     function subId() external view returns (uint64);
 
+    function allowedMinters(address addressStack) external view returns(bool);
+
+    function allowedContract(address addressStack) external view returns(bool);
+
     function donId() external view returns (bytes32);
 
     function secretVersion() external view returns (uint64);
@@ -35,7 +39,7 @@ interface IdStockStorage {
             uint8 _secretSlot
         );
 
-    function addStock(string memory name, address stock) external;
+    function addStock(string memory name, address stock,address stackAddress) external;
 
     function getStocksArray() external view returns (address[] memory);
 

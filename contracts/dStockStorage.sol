@@ -12,7 +12,7 @@ contract dStockStorage is ConfirmedOwner {
     string public s_mintSourceCode;
     string public s_redeemSourceCode;
 
-    address public functionsRouter;
+
     uint64 public subId;
     bytes32 public donId; //testing public
     uint64 public secretVersion; //testing public
@@ -36,9 +36,11 @@ contract dStockStorage is ConfirmedOwner {
         address pairAddress;
         uint112 reserves0;
         uint112 reserves1;
+        uint256 totalSupply;
     }
 
     mapping(address addressStock => bool isAllowed) public allowedContract;
+    mapping(address addressStack=> bool isAllowed) public allowedMinters;
 
     mapping(address user => uint256 accountbalance) public userBalance;
 
@@ -51,12 +53,31 @@ contract dStockStorage is ConfirmedOwner {
         _;
     }
 
-    function addStock(string memory name, address stock) external {
+    function addStock(string memory name, address stock,address stackAddress) external {
         require(owner() == tx.origin, "Original Tx not from owner");
         allowedContract[stock] = true;
+        allowedMinters[stackAddress] = true;
         stocksDeployed.push(Stock(name, stock));
     }
 
+    function removeStock(address stock) external onlyOwner {
+
+
+        // Elimina el stock del mapping
+        allowedContract[stock] = false;
+
+        // Elimina el stock del array
+        uint256 length = stocksDeployed.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (stocksDeployed[i].stockAddress == stock) {
+                // Mueve el último elemento al lugar del elemento a eliminar
+                stocksDeployed[i] = stocksDeployed[length - 1];
+                // Elimina el último elemento del array
+                stocksDeployed.pop();
+                break;
+            }
+        }
+    }
     function fundAccount(uint256 amountUsdc) external {
         userBalance[msg.sender] += amountUsdc;
     }
@@ -145,23 +166,25 @@ contract dStockStorage is ConfirmedOwner {
                 stock,
                 addressTokenB
             );
-
+            uint256 totalSupply = IERC20Extended(stock).totalSupply();
             if (pairAddress != address(0)) {
                 // Verifica si el par existe
                 (uint112 reserve0, uint112 reserve1, ) = IUniswapV2Pair(
                     pairAddress
                 ).getReserves();
                 string memory name = IERC20Extended(stock).name();
+                
                 poolReserves[i] = PoolReserves(
                     name,
                     stock,
                     pairAddress,
                     reserve0,
-                    reserve1
+                    reserve1,
+                    totalSupply
                 );
             } else {
                 string memory name = IERC20Extended(stock).name();
-                poolReserves[i] = PoolReserves(name, stock, pairAddress, 0, 0);
+                poolReserves[i] = PoolReserves(name, stock, pairAddress, 0, 0,totalSupply);
             }
         }
         return poolReserves;

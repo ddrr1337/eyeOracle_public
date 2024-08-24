@@ -4,19 +4,22 @@ pragma solidity 0.8.25;
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
-import {IFunctionsBilling} from "@chainlink/contracts/src/v0.8/functions/v1_0_0/interfaces/IFunctionsBilling.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IdStockStorage} from "./interfaces/IdStockStorage.sol";
+import {CompoundSimpleRewards} from "./CompoundSimpleRewards.sol";
+import {IUniswapV2Factory} from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
 contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
+    using FunctionsRequest for FunctionsRequest.Request;
+    using Strings for uint256;
+
     event MintFulfilled(address indexed requester, bytes32 indexed requestId);
     event SendMintRequest(address indexed requester, bytes32 indexed requestId);
 
     uint256 public httpRequestNonce;
 
-    using FunctionsRequest for FunctionsRequest.Request;
-    using Strings for uint256;
+
 
     error dSTOCK__DoesntMeetMinimumWithdrawAmount();
     error dSTOCK__transferFailed();
@@ -53,16 +56,21 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
     mapping(address user => uint256 pendingWithdrawAmount)
         public s_userToWithdrawAmount;
 
+    address public compoundSimpleRewardsAddress;
     // TESTING
     bytes32 public testRequestID;
     uint96 public linkFeeTest;
+    uint256 public testingRate;
 
     constructor(
         address FUNCTIONS_ROUTER,
         address USDC,
         string memory stockName,
         address storeSorceCodeAddress,
-        uint256 nonce
+        uint256 nonce,
+        address uniswapFactoryAddress,
+        address MMToken,
+        uint256 rateOfInterest
     )
         ConfirmedOwner(msg.sender)
         FunctionsClient(FUNCTIONS_ROUTER)
@@ -73,15 +81,31 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
 
         i_storeSorceCodeAddress = storeSorceCodeAddress;
         httpRequestNonce = nonce;
+        testingRate = rateOfInterest;
+
+        address pairAddress = IUniswapV2Factory(uniswapFactoryAddress).createPair(address(this), USDC);
+
+        // Desplegar un nuevo contrato CompoundSimpleRewards y almacenar su dirección
+        uint256 startRewardsAt = block.timestamp;
+        CompoundSimpleRewards compoundSimpleRewards = new CompoundSimpleRewards(pairAddress,MMToken,startRewardsAt,0,rateOfInterest);
+        compoundSimpleRewardsAddress = address(compoundSimpleRewards);
+ 
 
         IdStockStorage(i_storeSorceCodeAddress).addStock(
             string(abi.encodePacked("d", stockName)),
-            address(this)
+            address(this),
+            address(compoundSimpleRewards)
         );
     }
 
+    modifier onlyAllowedStocks() {
+        require(IdStockStorage(i_storeSorceCodeAddress).allowedContract(address(this)), "This Contract is not Allowed");
+        _;
+    }
+
+
     //imput in eth units
-    function sendMintRequest(uint256 amountUSDC) external returns (bytes32) {
+    function sendMintRequest(uint256 amountUSDC) external  returns (bytes32) {
         require(
             IdStockStorage(i_storeSorceCodeAddress).userBalance(msg.sender) >=
                 amountUSDC * USDC_DECIMALS,
@@ -97,10 +121,14 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(getMintCode());
         req.addDONHostedSecrets(secretSlot, secretVersion);
-        string[] memory args = new string[](3);
+        string[] memory args = new string[](5);
+        string memory requester = Strings.toString(uint256(uint160(msg.sender)));
+   
         args[0] = this.name();
         args[1] = amountUSDC.toString();
         args[2] = httpRequestNonce.toString();
+        args[3] = requester;
+        args[4]  = 'buy';
 
         req.setArgs(args);
 
@@ -144,8 +172,9 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         emit MintFulfilled(requester, requestId);
     }
 
-    function sendRedeemRequest(
-        uint256 amountStock
+    function sendSellHoldRequest(
+        uint256 amountStock,
+        bool isHolding
     ) external onlyOwner returns (bytes32) {
         require(
             balanceOf(msg.sender) >= amountStock,
@@ -161,10 +190,16 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(getRedeemCode());
         req.addDONHostedSecrets(secretSlot, secretVersion);
-        string[] memory args = new string[](3);
+        string[] memory args = new string[](5);
+        string memory requester = Strings.toString(uint256(uint160(msg.sender)));
+
         args[0] = this.name();
         args[1] = amountStock.toString();
         args[2] = httpRequestNonce.toString();
+        args[3] = requester;
+        args[4]  = isHolding? "hold":"sell";
+
+        
         req.setArgs(args);
 
         bytes32 requestId = _sendRequest(
@@ -179,11 +214,11 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
             MintOrRedeem.redeem
         );
         httpRequestNonce++;
-        _burn(msg.sender, amountStock);
+        //_burn(msg.sender, amountStock);
         return requestId;
     }
 
-    function _redeemFulFillRequest(
+    function _sellHoldFulFillRequest(
         bytes32 requestId,
         bytes memory response
     ) internal {
@@ -204,7 +239,7 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         if (s_requestIdToRequest[requestId].mintOrRedeem == MintOrRedeem.mint) {
             _mintFulfillRequest(requestId, response);
         } else {
-            _redeemFulFillRequest(requestId, response);
+            _sellHoldFulFillRequest(requestId, response);
         }
     }
 
@@ -264,4 +299,6 @@ contract dSTOCK is ConfirmedOwner, FunctionsClient, ERC20 {
         string memory testName = this.name();
         return testName;
     }
+
+
 }

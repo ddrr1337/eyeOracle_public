@@ -6,7 +6,8 @@
   "scripts": {
     "simulateBuyStock": "node ./functions/simulators/alpacaBuyStockSimulator.js",
     "simulateSellStock": "node ./functions/simulators/alpacaSellStockSimulator.js",
-    "simulateTester": "node ./functions/simulators/alpacaTesterSimulator.js"
+    "simulateBackendBuy": "node ./functions/simulators/backendBuySimulator.js",
+    "simulateBackendSell": "node ./functions/simulators/backendSellSimulator.js"
   },
   "devDependencies": {
     "@chainlink/contracts": "^1.1.1",
@@ -19,6 +20,8 @@
     "@uniswap/lib": "^4.0.1-alpha",
     "@uniswap/v2-core": "^1.0.1",
     "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "cbor": "^9.0.2",
+    "cbor-x": "^1.6.0",
     "chai": "^4.2.0",
     "dotenv": "^16.4.5",
     "ethereum-waffle": "^3.0.0",

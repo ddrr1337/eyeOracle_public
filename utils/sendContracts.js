@@ -1,5 +1,5 @@
-async function sendContracts(contractsArray) {
-    const apiUrl = "http://192.168.1.36:8001/api/add-contracts/"
+async function sendContracts(contractsArray, backendUrl) {
+    const apiUrl = backendUrl
 
     const options = {
         method: "POST",

@@ -13,7 +13,7 @@ async function main() {
     //const dStockAddress = dStockDeployment.address
     const dStockAbi = dStockDeployment.abi
 
-    const dStockAddress = "0x4E58B6910102263B617249ca9951250cBfF6220F"
+    const dStockAddress = "0xD5088f2d86F2A07e968d5134C8CF470858c3f0B7"
     const dStockContract = new ethers.Contract(
         dStockAddress,
         dStockAbi,
@@ -37,13 +37,13 @@ async function main() {
         "-------------------- FUND ACCOUNT WITH USDC COMPLETED -----------------------",
     )
 
-    /*     const amount = BigInt("307")
+    const amount = BigInt("250")
 
     await dStockContract.sendMintRequest(amount)
 
     console.log(
         "-------------------- MINT REQUEST COMPLETED -----------------------",
-    ) */
+    )
 }
 
 main()

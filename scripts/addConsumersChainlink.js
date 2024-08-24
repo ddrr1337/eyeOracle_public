@@ -1,6 +1,7 @@
 const { ethers, network, deployments } = require("hardhat")
 const { getAccount } = require("../utils/getAccount")
 const { networkConfig } = require("../helper-hardhat-config")
+const { saveContract } = require("../utils/saveRemoveContracts")
 
 async function main() {
     const rpcUrl = network.config.url
@@ -51,6 +52,7 @@ async function main() {
             )
             await addConsumerTx.wait()
             console.log(`Added consumer: ${stockAddress.stockAddress}`)
+            saveContract(stockAddress.stockAddress, stockAddress.name)
         } catch (error) {
             console.error(
                 `Failed to add consumer for address ${stockAddress.stockAddress}:`,

@@ -40,7 +40,7 @@ async function main() {
     )
 
     const mintSourceCode = fs
-        .readFileSync("./functions/sources/alpacaBuyStock.js")
+        .readFileSync("./functions/sources/backendBuy.js")
         .toString()
 
     const redeemSourceCode = fs

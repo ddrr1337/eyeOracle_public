@@ -9,4 +9,6 @@ interface IERC20Extended is IERC20 {
     function symbol() external view returns (string memory);
 
     function decimals() external view returns (uint8);
+
+    function mint(address to, uint256 amount) external;
 }

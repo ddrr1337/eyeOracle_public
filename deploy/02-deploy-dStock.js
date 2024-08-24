@@ -20,7 +20,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const account = getAccount("main", provider)
 
     const gasMultiplier = 1.2
-    const FUNCTIONS_ROUTER = networkConfig[chainId].FUNCTIONS_ROUTER
+    const functionsRouter = networkConfig[chainId].FUNCTIONS_ROUTER
+    const uniswapFactory = networkConfig[chainId].UNISWAP_V2_FACTORY
     const USDC = networkConfig[chainId].USDC
 
     console.log(await getGasPrice())
@@ -29,22 +30,34 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const dStoarageAddress = dStorageDeployment.address
     const dStoarageAbi = dStorageDeployment.abi
 
+    const MMKTokenDeployment = await deployments.get("MMKToken")
+    const MMKTokenAddress = MMKTokenDeployment.address
+
+    function annualRate(rate) {
+        const aRate = 1 * 10 ** 27 + (rate / (365 * 86400)) * 10 ** 27
+        console.log("rate", BigInt(Math.floor(aRate)))
+        return BigInt(Math.floor(aRate))
+    }
+
     const verifyContract = networkConfig[chainId].verify
 
     for (const stockName of STOCKS) {
         const nonce = await incrementNonce()
 
-        const constructorArgs = [
-            FUNCTIONS_ROUTER,
+        const constructorStockArgs = [
+            functionsRouter,
             USDC,
             stockName,
             dStoarageAddress,
             nonce,
+            uniswapFactory,
+            MMKTokenAddress,
+            annualRate(0.05).toString(),
         ]
 
         const dStockDeploy = await deploy("dSTOCK", {
             from: deployer,
-            args: constructorArgs,
+            args: constructorStockArgs,
             log: true,
             waitConfirmations: network.config.blockConfirmations || 1,
             gasMultiplier: gasMultiplier,
@@ -54,12 +67,33 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
             `----------------------- DEPLOY COMPLETED OF ${stockName} --------------------------`,
         )
 
+        const dStockContract = new ethers.Contract(
+            dStockDeploy.address,
+            dStockDeploy.abi,
+            getAccount("main", provider),
+        )
+
+        const construtorStackArgs = [
+            dStockDeploy.address, //dummyAddress dont match original constructor
+            MMKTokenAddress, // this match original constructor
+            12545, // arbitrary uint dont mathc original construcotr
+            0, // uint, match original constructor
+            annualRate(0.05).toString(), // BigInt, to string, match original constructor
+        ]
+
+        const stackContract =
+            await dStockContract.compoundSimpleRewardsAddress()
+
+        console.log("STACK CONTRACT AT:", stackContract)
+
         if (verifyContract) {
-            await verify(dStockDeploy.address, constructorArgs)
+            await verify(dStockDeploy.address, constructorStockArgs)
+
             console.log(
                 "----------------------- VERIFICATION COMPLETED --------------------------",
             )
         }
+        break
     }
 
     const dStorageContract = new ethers.Contract(
@@ -70,7 +104,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     const dStorageArray = await dStorageContract.getStocksArray()
 
-    await sendContracts(dStorageArray)
+    const localBackend = process.env.LOCAL_BACKEND
+    const deployedBackend = process.env.DEPLOYED_BACKEND
+
+    await sendContracts(dStorageArray, localBackend)
+    await sendContracts(dStorageArray, deployedBackend)
 
     console.log(
         "----------------------- CONTRACTS UPDATED IN BACKEND --------------------------",

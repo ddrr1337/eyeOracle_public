@@ -1,7 +1,9 @@
-const requestConfig = require("../configs/alpacaMintConfig.js")
+const { requestConfigFunction } = require("../configs/backendSellConfig.js")
 const { simulateScript, decodeResult } = require("@chainlink/functions-toolkit")
 
 async function main() {
+    const requestConfig = await requestConfigFunction()
+
     const { responseBytesHexstring, errorString } =
         await simulateScript(requestConfig)
 

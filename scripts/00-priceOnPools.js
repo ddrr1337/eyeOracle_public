@@ -1,11 +1,15 @@
 const { ethers, deployments, network } = require("hardhat")
 const { getAccount } = require("../utils/getAccount")
 const { getGasPrice } = require("../utils/getGasPrice")
+const { networkConfig } = require("../helper-hardhat-config")
 
 async function main() {
     const rpcUrl = network.config.url
     const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
     const account = getAccount("main", provider)
+    const chainId = network.config.chainId
+    const factoryAddress = networkConfig[chainId].UNISWAP_V2_FACTORY
+    const addressUsdc = networkConfig[chainId].TESTER_USDC
 
     await getGasPrice()
 
@@ -19,11 +23,11 @@ async function main() {
         account,
     )
 
-    const userBalances = await dStorageContract.getPriceOnPools(account.address)
+    const pricePools = await dStorageContract.getPriceOnPools(factoryAddress,addressUsdc)
 
     console.log("-------------------- USER BALANCES -----------------------")
 
-    console.log(userBalances)
+    console.log(pricePools)
 }
 
 main()

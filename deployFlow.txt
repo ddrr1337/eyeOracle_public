@@ -1,5 +1,8 @@
 deploy storage
+deploy MMtoken
 deploy stocks
-    send new stock addresses to backend
+    automate create pair at uniswap
+    automate create new contract stack
+    automate send new stock addresses to backend
 update source code
 approve stocks contracts at chainlink
