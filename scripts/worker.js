@@ -3,6 +3,9 @@ const { requestQueue } = require("./queue");
 const { sendRequest } = require("../utils/sendRequest");
 const { getAccount } = require("../utils/getAccount");
 const { decodeCBOR } = require("../utils/decodeCBOR");
+const { networkConfig } = require("../helper-hardhat-config");
+const oracleGridAbi =
+  require("../artifacts/contracts/oracle/OracleGrid.sol/OracleGrid.json").abi;
 
 const testerContractAbi = [
   {
@@ -22,10 +25,9 @@ async function main() {
   const provider = new ethers.providers.JsonRpcProvider(
     process.env.SEPOLIA_RPC
   );
+  const chainId = network.config.chainId;
 
-  const oracleGridDeployment = await deployments.get("OracleGrid");
-  const oracleGridAddress = oracleGridDeployment.address;
-  const oracleGridAbi = oracleGridDeployment.abi;
+  const oracleGridAddress = networkConfig[chainId].ORACLE_GRID_ADDRESS;
 
   const oracleGridContract = new ethers.Contract(
     oracleGridAddress,

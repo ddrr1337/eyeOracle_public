@@ -1,7 +1,5 @@
 require("dotenv").config();
 const { network, ethers } = require("hardhat");
-const { getAccount } = require("../utils/getAccount");
-const cbor = require("cbor");
 const { requestQueue } = require("./queue");
 const { networkConfig } = require("../helper-hardhat-config");
 
