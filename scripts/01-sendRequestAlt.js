@@ -6,7 +6,7 @@ const { decodeCBOR } = require("../utils/decodeCBOR");
 async function main() {
   const rpcUrl = network.config.url;
   const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-  const account = getAccount("main", provider);
+  const account = getAccount("sec", provider);
 
   await getGasPrice();
 
@@ -31,7 +31,7 @@ async function main() {
   const oracleRouterContract = new ethers.Contract(
     oracleRouterAddress,
     oracleRouterAbi,
-    getAccount("main", provider)
+    getAccount("sec", provider)
   );
 
   console.log("Tx:", sendRequestTx.hash);

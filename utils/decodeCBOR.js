@@ -1,13 +1,14 @@
 const cbor = require("cbor");
 
-async function decodeCBOR(dataBuffer) {
+async function decodeCBOR(request) {
   try {
-    // Decodificar el Buffer CBOR
-    const decodedData = await cbor.decodeFirst(dataBuffer);
+    const decodedData = cbor.decodeFirstSync(
+      Buffer.from(request.slice(2), "hex")
+    );
+
     return decodedData;
   } catch (error) {
-    console.error("Error decoding CBOR:", error);
-    return null;
+    console.error("Failed to decode CBOR data:", error);
   }
 }
 

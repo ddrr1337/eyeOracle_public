@@ -15,14 +15,24 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const gasMultiplier = 1.2;
 
-  const dStorageDeployment = await deployments.get("dStockStorage");
-  const dStoarageAddress = dStorageDeployment.address;
-
   await getGasPrice();
 
-  const constructorArgs = [dStoarageAddress];
+  const oracleRouterDeployment = await deployments.get("OracleRouter");
+  const oracleRouterAddress = oracleRouterDeployment.address;
 
-  const MMTokenDeploy = await deploy("MMKToken", {
+  const oracleGridDeployment = await deployments.get("OracleGrid");
+  const oracleGridAddress = oracleGridDeployment.address;
+  const oracleGridAbi = oracleGridDeployment.abi;
+
+  const oracleGridContract = new ethers.Contract(
+    oracleGridAddress,
+    oracleGridAbi,
+    getAccount("main", provider)
+  );
+
+  const constructorArgs = [oracleRouterAddress];
+
+  const testerContractDeploy = await deploy("TesterContract", {
     from: deployer,
     args: constructorArgs,
     log: true,
@@ -31,23 +41,25 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
 
   console.log(
-    "----------------------- DEPLOY COMPLETED --------------------------"
-  );
-
-  const MMTokenContract = new ethers.Contract(
-    MMTokenDeploy.address,
-    MMTokenDeploy.abi,
-    getAccount("main", provider)
+    "----------------------- TESTER CONTRACT DEPLOYED --------------------------"
   );
 
   const verifyContract = networkConfig[chainId].verify;
 
   if (verifyContract) {
-    await verify(MMTokenContract.address, constructorArgs);
+    await verify(testerContractDeploy.address, constructorArgs);
     console.log(
       "----------------------- VERIFICATION COMPLETED --------------------------"
     );
   }
+
+  const addConsumer = await oracleGridContract.addConsumer(
+    testerContractDeploy.address
+  );
+
+  console.log(
+    "----------------------- ADD CONSUMER COMPLETED --------------------------"
+  );
 };
 
-module.exports.tags = ["all", "MMKToken"];
+module.exports.tags = ["all", "testerContract"];

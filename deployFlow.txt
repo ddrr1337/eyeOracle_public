@@ -1,8 +1,18 @@
+NODES--------------------
+
+deploy oracleRouter
+deploy oracleGrid
+
+listen node
+
+MIDNIGHT---------------
+
+is django backend running?
+
 deploy storage
 deploy MMtoken
 deploy stocks
     automate create pair at uniswap
     automate create new contract stack
     automate send new stock addresses to backend
-update source code
-approve stocks contracts at chainlink
+

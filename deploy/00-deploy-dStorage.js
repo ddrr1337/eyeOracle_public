@@ -15,14 +15,19 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const gasMultiplier = 1.2;
 
-  const dStorageDeployment = await deployments.get("dStockStorage");
-  const dStoarageAddress = dStorageDeployment.address;
+  function getRandomInt() {
+    const min = 1;
+    const max = 10000000;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  const deployCompile = getRandomInt();
 
   await getGasPrice();
 
-  const constructorArgs = [dStoarageAddress];
+  const constructorArgs = [deployCompile];
 
-  const MMTokenDeploy = await deploy("MMKToken", {
+  const dStorageDeploy = await deploy("dStockStorage", {
     from: deployer,
     args: constructorArgs,
     log: true,
@@ -34,20 +39,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     "----------------------- DEPLOY COMPLETED --------------------------"
   );
 
-  const MMTokenContract = new ethers.Contract(
-    MMTokenDeploy.address,
-    MMTokenDeploy.abi,
+  const dStockStorageContract = new ethers.Contract(
+    dStorageDeploy.address,
+    dStorageDeploy.abi,
     getAccount("main", provider)
   );
 
   const verifyContract = networkConfig[chainId].verify;
 
   if (verifyContract) {
-    await verify(MMTokenContract.address, constructorArgs);
+    await verify(dStockStorageContract.address, constructorArgs);
     console.log(
       "----------------------- VERIFICATION COMPLETED --------------------------"
     );
   }
 };
 
-module.exports.tags = ["all", "MMKToken"];
+module.exports.tags = ["all", "dStorage"];

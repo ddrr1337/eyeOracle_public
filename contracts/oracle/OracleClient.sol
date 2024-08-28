@@ -18,19 +18,16 @@ abstract contract OracleClient {
         i_router = IOracleRouter(router);
     }
 
-    function _sendRequest(bytes memory data) internal returns (uint256) {
-        uint256 requestId = i_router.startRequest(data);
+    function _sendRequest(
+        bytes memory data,
+        address consumer
+    ) internal returns (uint256) {
+        uint256 requestId = i_router.startRequest(data, consumer);
         return requestId;
     }
 
-    /// @notice User defined function to handle a response from the DON
-    /// @param requestId The request ID, returned by sendRequest()
-    /// @param response Aggregated response from the execution of the user's source code
-    /// @param err Aggregated error from the execution of the user code or from the execution pipeline
-    /// @dev Either response or error parameter will be set, but never both
     function fulfillRequest(
-        bytes32 requestId,
-        bytes memory response,
-        bytes memory err
+        uint256 requestId,
+        uint256 response
     ) external virtual;
 }

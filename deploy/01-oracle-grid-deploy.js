@@ -15,14 +15,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const gasMultiplier = 1.2;
 
-  const dStorageDeployment = await deployments.get("dStockStorage");
-  const dStoarageAddress = dStorageDeployment.address;
-
   await getGasPrice();
 
-  const constructorArgs = [dStoarageAddress];
+  const constructorArgs = [];
 
-  const MMTokenDeploy = await deploy("MMKToken", {
+  const oracleGridDeploy = await deploy("OracleGrid", {
     from: deployer,
     args: constructorArgs,
     log: true,
@@ -31,23 +28,17 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
 
   console.log(
-    "----------------------- DEPLOY COMPLETED --------------------------"
-  );
-
-  const MMTokenContract = new ethers.Contract(
-    MMTokenDeploy.address,
-    MMTokenDeploy.abi,
-    getAccount("main", provider)
+    "----------------------- ORACLE GRID DEPLOYED --------------------------"
   );
 
   const verifyContract = networkConfig[chainId].verify;
 
   if (verifyContract) {
-    await verify(MMTokenContract.address, constructorArgs);
+    await verify(oracleGridDeploy.address, constructorArgs);
     console.log(
       "----------------------- VERIFICATION COMPLETED --------------------------"
     );
   }
 };
 
-module.exports.tags = ["all", "MMKToken"];
+module.exports.tags = ["all", "oracleGrid"];
