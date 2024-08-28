@@ -9,3 +9,15 @@ services:
 
     env_file:
       - oracle_node/.env
+  redis:
+    image: redis:latest
+    container_name: redis-oracle_node_1
+    ports:
+      - "6379:6379" # Mapea el puerto 6379 del contenedor al puerto 6379 del host
+    volumes:
+      - redis-data:/data # Opcional: persiste los datos de Redis en un volumen
+    restart: always # Reinicia el contenedor automáticamente en caso de fallo
+
+volumes:
+  redis-data:
+    driver: local
