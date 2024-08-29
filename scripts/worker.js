@@ -21,10 +21,10 @@ async function main() {
   const formattedDate = now.toDateString(); // "Mon Aug 29 2024"
   const formattedTime = now.toLocaleTimeString("en-US"); // "5:30:15 PM"
 
-  const dateTime = `${formattedDate} // ${formattedTime}`;
+  const dateTime = `[${formattedDate} | ${formattedTime}]`;
 
   const ORACLE_ID = process.env.ORACLE_ID;
-  console.log(`${dateTime} -- Node ${ORACLE_ID} Worker ready for task...`);
+  console.log(`${dateTime}  Node ${ORACLE_ID} Worker ready for task...`);
   const provider = new ethers.providers.JsonRpcProvider(
     process.env.SEPOLIA_RPC
   );
@@ -49,7 +49,11 @@ async function main() {
         ORACLE_ID
       );
       const receipt = await assignTaskTx.wait();
-      console.log("Tx Success?: ", receipt.status === 1 ? true : false);
+      console.log(
+        dateTime,
+        "Tx Success?: ",
+        receipt.status === 1 ? true : false
+      );
       if (receipt.status === 1) {
         return true;
       } else {
@@ -64,13 +68,13 @@ async function main() {
     const { requestId, consumer, request } = job.data;
 
     try {
-      console.log(`${dateTime} -- Processing request ${requestId}`);
+      console.log(`${dateTime} Processing request ${requestId}`);
 
       const success = await claimProcess(oracleGridContract, requestId);
 
       console.log("Success", success);
       if (success) {
-        console.log(`Request ${requestId} processed successfully.`);
+        console.log(`${dateTime} Request ${requestId} processed successfully.`);
 
         const decodedRequest = await decodeCBOR(request);
         console.log("decoded", decodedRequest);
@@ -99,12 +103,14 @@ async function main() {
           requestId,
           BigInt(backendResponse.data)
         );
-        console.log(`Successfully fulfilled request ${requestId}`);
+        console.log(`${dateTime} Successfully fulfilled request ${requestId}`);
       } else {
-        console.log(`Request Already Taken ${requestId}`);
+        console.log(`${dateTime} Request Already Taken ${requestId}`);
       }
     } catch (error) {
-      console.error(`Error processing request ${requestId}: ${error.message}`);
+      console.error(
+        `${dateTime} Error processing request ${requestId}: ${error.message}`
+      );
     }
   });
 }

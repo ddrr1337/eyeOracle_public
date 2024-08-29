@@ -4,6 +4,12 @@ const { requestQueue } = require("./queue");
 const { networkConfig } = require("../helper-hardhat-config");
 
 async function main() {
+  const now = new Date();
+  const formattedDate = now.toDateString(); // "Mon Aug 29 2024"
+  const formattedTime = now.toLocaleTimeString("en-US"); // "5:30:15 PM"
+
+  const dateTime = `[${formattedDate} | ${formattedTime}]`;
+
   const chainId = network.config.chainId;
   const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
 
@@ -23,7 +29,9 @@ async function main() {
 
   // Escucha eventos
   oracleRouter.on("OracleRequestHttp", async (requestId, consumer, request) => {
-    console.log(`Event detected: RequestId ${requestId.toString()}`);
+    console.log(
+      `${dateTime} Event detected: RequestId ${requestId.toString()}`
+    );
 
     await requestQueue.add({
       requestId: requestId.toString(),
@@ -32,7 +40,7 @@ async function main() {
     });
   });
 
-  console.log("Listening for OracleRequestHttp events...");
+  console.log(`${dateTime} Listening for OracleRequestHttp events...`);
 }
 
 main().catch((error) => {
