@@ -16,13 +16,13 @@ Each node is "bound" to a Redis server for queue and task management. This repos
 4. The node that successfully registers the task in `OracleGrid` performs the HTTP request to the target API.
 5. The other nodes receive an error when trying to call `oracleAssignWork`, indicating that another node is processing the request.
 
-### Deployment and Execution Flow
+### Deployment and Starting Flow
 
 1. Deploy `OracleRouter`.
 2. Deploy `OracleGrid`.
 3. Set the addresses of `OracleRouter` and `OracleGrid` in the `helper-hardhat-config.js` file.
 4. Deploy your contract that inherits from `OracleClient`.
-5. Request as many access tokens for your API as you have nodes and set this token in `NODE_ACCESS`. Also, assign a unique ID and a `SLEEP` value in the `.env` file (note that `NODE_ID` must be a `uint` as `OracleGrid` expects a `uint` in the input parameter).
+5. Request as many access tokens for your API as you have nodes and set this token in `NODE_ACCESS`. Also, assign a unique ID and a `SLEEP` (set 0 in the first node and add 2 sec on other nodes) value in the `.env` file (note that `NODE_ID` must be a `uint` as `OracleGrid` expects a `uint` in the input parameter).
 6. Run the following command:
    ```bash
    yarn concurrently "yarn hardhat run scripts/eventListener.js --network sepolia" "yarn hardhat run scripts/worker.js --network sepolia"

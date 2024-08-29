@@ -7,24 +7,14 @@ const { networkConfig } = require("../helper-hardhat-config");
 const oracleGridAbi =
   require("../artifacts/contracts/oracle/OracleGrid.sol/OracleGrid.json").abi;
 
+const oracleRouterAbi =
+  require("../artifacts/contracts/oracle/OracleRouter.sol/OracleRouter.json").abi;
+
 const SLEEP_TIME = 1000;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-const testerContractAbi = [
-  {
-    inputs: [
-      { internalType: "uint256", name: "requestId", type: "uint256" },
-      { internalType: "uint256", name: "response", type: "uint256" },
-    ],
-    name: "fulfillRequest",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-];
 
 async function main() {
   console.log("Worker ready for task...");
@@ -34,6 +24,7 @@ async function main() {
   const chainId = network.config.chainId;
 
   const oracleGridAddress = networkConfig[chainId].ORACLE_GRID_ADDRESS;
+  const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
 
   const oracleGridContract = new ethers.Contract(
     oracleGridAddress,
@@ -90,13 +81,14 @@ async function main() {
           headers
         );
 
-        const consumerContract = new ethers.Contract(
-          consumer,
-          testerContractAbi,
+        const routerContract = new ethers.Contract(
+          oracleRouterAddress,
+          oracleRouterAbi,
           getAccount("main", provider)
         );
 
-        await consumerContract.fulfillRequest(
+        await routerContract.fulfill(
+          consumer,
           requestId,
           BigInt(backendResponse.data)
         );
