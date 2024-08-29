@@ -17,7 +17,14 @@ function sleep(ms) {
 }
 
 async function main() {
-  console.log("Worker ready for task...");
+  const now = new Date();
+  const formattedDate = now.toDateString(); // "Mon Aug 29 2024"
+  const formattedTime = now.toLocaleTimeString("en-US"); // "5:30:15 PM"
+
+  const dateTime = `${formattedDate} // ${formattedTime}`;
+
+  const ORACLE_ID = process.env.ORACLE_ID;
+  console.log(`${dateTime} -- Node ${ORACLE_ID} Worker ready for task...`);
   const provider = new ethers.providers.JsonRpcProvider(
     process.env.SEPOLIA_RPC
   );
@@ -57,7 +64,7 @@ async function main() {
     const { requestId, consumer, request } = job.data;
 
     try {
-      console.log(`Processing request ${requestId}`);
+      console.log(`${dateTime} -- Processing request ${requestId}`);
 
       const success = await claimProcess(oracleGridContract, requestId);
 
