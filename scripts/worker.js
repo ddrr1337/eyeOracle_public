@@ -49,11 +49,7 @@ async function main() {
         ORACLE_ID
       );
       const receipt = await assignTaskTx.wait();
-      console.log(
-        dateTime,
-        "Tx Success?: ",
-        receipt.status === 1 ? true : false
-      );
+
       if (receipt.status === 1) {
         return true;
       } else {
@@ -72,7 +68,7 @@ async function main() {
 
       const success = await claimProcess(oracleGridContract, requestId);
 
-      console.log("Success", success);
+      console.log(dateTime, "Task assignment success?", success);
       if (success) {
         console.log(`${dateTime} Request ${requestId} processed successfully.`);
 
