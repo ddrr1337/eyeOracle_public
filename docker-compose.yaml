@@ -13,10 +13,10 @@ services:
     image: redis:latest
     container_name: redis-oracle_node_1
     ports:
-      - "6379:6379" # Mapea el puerto 6379 del contenedor al puerto 6379 del host
+      - "6379:6379"
     volumes:
-      - redis-data:/data # Opcional: persiste los datos de Redis en un volumen
-    restart: always # Reinicia el contenedor automáticamente en caso de fallo
+      - redis-data:/data
+    restart: always
 
 volumes:
   redis-data:

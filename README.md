@@ -6,7 +6,7 @@ This is a minimalist project that mimics the capabilities of Chainlink. The proj
 
 The number of nodes that can be added is arbitrary. Task assignment to the nodes is handled through the `OracleGrid` contract, eliminating the need for a centralized database that could fail.
 
-Each node is "bound" to a Redis server for queue and task management. This repository includes a `docker-compose.yaml` file for deploying both the node and the Redis server. Remember to change the Redis port for each node you deploy.
+Each node is "bound" to a Redis server for queue and task management. This repository includes a `docker-compose.yaml` file for deploying both the node and the Redis server. Remember to change the Redis port and host in .env file for each node you deploy.
 
 ### Execution Flow:
 
@@ -20,7 +20,7 @@ Each node is "bound" to a Redis server for queue and task management. This repos
 
 1. Deploy `OracleRouter`.
 2. Deploy `OracleGrid`.
-3. Set the addresses of `OracleRouter` and `OracleGrid` in the `.env` file.
+3. Set the addresses of `OracleRouter` and `OracleGrid` in the `helper-hardhat-config.js` file.
 4. Deploy your contract that inherits from `OracleClient`.
 5. Request as many access tokens for your API as you have nodes and set this token in `NODE_ACCESS`. Also, assign a unique ID and a `SLEEP` value in the `.env` file (note that `NODE_ID` must be a `uint` as `OracleGrid` expects a `uint` in the input parameter).
 6. Run the following command:

@@ -1,28 +1,18 @@
-async function sendRequest(requestId, decodedData) {
+async function sendRequest(requestId, decodedData, headers) {
   try {
-    // Extraer los valores de decodedData
     const { url, method, args } = decodedData;
 
-    // Crear el cuerpo de la solicitud con los valores extraídos
-    // Usamos una estructura dinámica para manejar cualquier número de elementos en args
     const requestBody = {
       requestId: requestId,
     };
 
-    // Asignar los elementos de args a requestBody con claves dinámicas
     args.forEach((arg, index) => {
       requestBody[`arg${index}`] = arg;
     });
 
-    // Realizar la llamada POST a la URL proporcionada en los datos decodificados
-    const token = process.env.NODE_ACCESS;
-
     const response = await fetch(url, {
       method: method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: headers,
       body: JSON.stringify(requestBody),
     });
 

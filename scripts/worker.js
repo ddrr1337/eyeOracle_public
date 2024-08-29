@@ -43,9 +43,8 @@ async function main() {
 
   async function claimProcess(contract, requestId) {
     const ORACLE_ID = process.env.ORACLE_ID;
-    console.log("start_wait");
     await sleep(SLEEP_TIME * process.env.ORACLE_WAIT);
-    console.log("stop wait");
+
     try {
       const assignTaskTx = await contract.oracleAssignWork(
         requestId,
@@ -78,7 +77,18 @@ async function main() {
         const decodedRequest = await decodeCBOR(request);
         console.log("decoded", decodedRequest);
 
-        const backendResponse = await sendRequest(requestId, decodedRequest);
+        const token = process.env.NODE_ACCESS;
+
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+
+        const backendResponse = await sendRequest(
+          requestId,
+          decodedRequest,
+          headers
+        );
 
         const consumerContract = new ethers.Contract(
           consumer,
