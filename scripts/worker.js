@@ -7,6 +7,12 @@ const { networkConfig } = require("../helper-hardhat-config");
 const oracleGridAbi =
   require("../artifacts/contracts/oracle/OracleGrid.sol/OracleGrid.json").abi;
 
+const SLEEP_TIME = 1000;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const testerContractAbi = [
   {
     inputs: [
@@ -36,14 +42,22 @@ async function main() {
   );
 
   async function claimProcess(contract, requestId) {
-    const ORACLE_ID = 1;
+    const ORACLE_ID = process.env.ORACLE_ID;
+    console.log("start_wait");
+    await sleep(SLEEP_TIME * process.env.ORACLE_WAIT);
+    console.log("stop wait");
     try {
       const assignTaskTx = await contract.oracleAssignWork(
         requestId,
         ORACLE_ID
       );
-      console.log("Tx: ", assignTaskTx.hash);
-      return true;
+      const receipt = await assignTaskTx.wait();
+      console.log("Tx Success?: ", receipt.status === 1 ? true : false);
+      if (receipt.status === 1) {
+        return true;
+      } else {
+        return false;
+      }
     } catch (error) {
       return false;
     }
@@ -65,7 +79,6 @@ async function main() {
         console.log("decoded", decodedRequest);
 
         const backendResponse = await sendRequest(requestId, decodedRequest);
-        console.log(backendResponse.data);
 
         const consumerContract = new ethers.Contract(
           consumer,
@@ -79,7 +92,7 @@ async function main() {
         );
         console.log(`Successfully fulfilled request ${requestId}`);
       } else {
-        console.log(`Failed to process request ${requestId}`);
+        console.log(`Request Already Taken ${requestId}`);
       }
     } catch (error) {
       console.error(`Error processing request ${requestId}: ${error.message}`);

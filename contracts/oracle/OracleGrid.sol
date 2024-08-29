@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 
 contract OracleGrid is ConfirmedOwner {
+    event OracleAssignment(uint256 indexed requestId, uint64 indexed oracleId);
+
     mapping(uint256 requestId => uint64 tookByOracleId) public requstIdStatus;
     mapping(address nodeCaller => bool isAllowed) public allowedNodeCallers;
     mapping(address consumer => bool isAllowedConsumer) public allowedConsumer;
@@ -50,6 +52,8 @@ contract OracleGrid is ConfirmedOwner {
             "RequestId took by other oracle"
         );
         requstIdStatus[_requestId] = oracleId;
+
+        emit OracleAssignment(_requestId, oracleId);
     }
 
     function addConsumer(address consumer) external {
