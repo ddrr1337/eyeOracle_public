@@ -6,25 +6,35 @@ const { decodeCBOR } = require("../utils/decodeCBOR");
 const { networkConfig } = require("../helper-hardhat-config");
 const oracleGridAbi =
   require("../artifacts/contracts/oracle/OracleGrid.sol/OracleGrid.json").abi;
-
 const oracleRouterAbi =
   require("../artifacts/contracts/oracle/OracleRouter.sol/OracleRouter.json").abi;
 
+const winston = require("winston");
+
 const SLEEP_TIME = 1000;
+
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+    winston.format.printf(
+      (info) =>
+        `${info.timestamp} [${info.level.toUpperCase()}]: ${info.message}`
+    )
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: "worker.log" }),
+  ],
+});
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function main() {
-  const now = new Date();
-  const formattedDate = now.toDateString(); // "Mon Aug 29 2024"
-  const formattedTime = now.toLocaleTimeString("en-US"); // "5:30:15 PM"
-
-  const dateTime = `[${formattedDate} | ${formattedTime}]`;
-
   const ORACLE_ID = process.env.ORACLE_ID;
-  console.log(`${dateTime}  Node ${ORACLE_ID} Worker ready for task...`);
+  logger.info(` Node ${ORACLE_ID} Worker ready for task...`);
   const provider = new ethers.providers.JsonRpcProvider(
     process.env.SEPOLIA_RPC
   );
@@ -64,16 +74,16 @@ async function main() {
     const { requestId, consumer, request } = job.data;
 
     try {
-      console.log(`${dateTime} Processing request ${requestId}`);
+      logger.info(`Processing request ${requestId}`);
 
       const success = await claimProcess(oracleGridContract, requestId);
 
-      console.log(dateTime, "Task assignment success?", success);
+      logger.info(`Task assignment success? ${success}`);
       if (success) {
-        console.log(`${dateTime} Request ${requestId} processed successfully.`);
+        logger.info(`Request ${requestId} processed successfully.`);
 
         const decodedRequest = await decodeCBOR(request);
-        console.log("decoded", decodedRequest);
+        logger.info(`Decoded request: ${JSON.stringify(decodedRequest)}`);
 
         const token = process.env.NODE_ACCESS;
 
@@ -99,19 +109,17 @@ async function main() {
           requestId,
           BigInt(backendResponse.data)
         );
-        console.log(`${dateTime} Successfully fulfilled request ${requestId}`);
+        logger.info(`Successfully fulfilled request ${requestId}`);
       } else {
-        console.log(`${dateTime} Request Already Taken ${requestId}`);
+        logger.info(`Request Already Taken ${requestId}`);
       }
     } catch (error) {
-      console.error(
-        `${dateTime} Error processing request ${requestId}: ${error.message}`
-      );
+      logger.error(`Error processing request ${requestId}: ${error.message}`);
     }
   });
 }
 
 main().catch((error) => {
-  console.error(error);
+  logger.error(error);
   process.exit(1);
 });
