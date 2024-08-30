@@ -1,4 +1,5 @@
-compile to get artifacts
-check redis url and port
-check oracle router address
-check oracle grid address
+
+deploy router
+deploy grid
+set both address in hardhat config
+

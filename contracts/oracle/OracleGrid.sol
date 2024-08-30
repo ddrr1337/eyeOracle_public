@@ -9,7 +9,7 @@ contract OracleGrid is ConfirmedOwner {
     mapping(address nodeCaller => bool isAllowed) public allowedNodeCallers;
     mapping(address consumer => bool isAllowedConsumer) public allowedConsumer;
     address[] public nodeCallers;
-    uint256 deployer = 3;
+    uint256 deployer = 4;
 
     constructor(address allowedCaller) ConfirmedOwner(msg.sender) {
         allowedNodeCallers[allowedCaller] = true;

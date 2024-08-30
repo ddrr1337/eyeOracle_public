@@ -1,5 +1,4 @@
 require("dotenv").config();
-const fs = require("fs");
 const { networkConfig } = require("../helper-hardhat-config");
 const { network, ethers } = require("hardhat");
 const { verify } = require("../utils/verify");

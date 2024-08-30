@@ -1,10 +1,8 @@
-const hre = require("hardhat");
 const redis = require("redis");
 
 async function main() {
-  // Configura la conexión a Redis
   const redisClient = redis.createClient({
-    url: "redis://138.201.253.154:6379", // Cambia esto si la URL de tu servidor Redis es diferente
+    url: "redis://138.201.253.154:6379",
   });
 
   redisClient.on("connect", () => {

@@ -21,7 +21,7 @@ async function sendRequest(requestId, decodedData, headers) {
     }
 
     const responseData = await response.json();
-    console.log("POST request successful:", responseData);
+
     return responseData;
   } catch (error) {
     console.error("Failed to post to API:", error);

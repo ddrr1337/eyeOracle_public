@@ -1,5 +1,7 @@
 # Basic Node Architecture Implementation
 
+Este proyecto esta destinado a desarrolladores que tienen el control de la APi destino, asi como de los contratos origenes de la transaccion. Si no esta en control de ambos, podra sufrir problemas con los calculos de gas para el callback del oraculo asi como de la necesaria autorizacion para el acceso al APi destino. LOS NODOS NO MANEJAN SECRETOS Y SE DEBE HACER DESDE LA API DESTINO.
+
 This is a minimalist project that mimics the capabilities of Chainlink. The project consists of a set of nodes that listen to an on-chain event and then perform an HTTP request to an API.
 
 **Note:** This project does not manage encrypted secrets, so the target API must be controlled by the user.

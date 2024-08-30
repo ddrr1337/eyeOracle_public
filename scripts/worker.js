@@ -46,7 +46,7 @@ async function main() {
   const oracleGridContract = new ethers.Contract(
     oracleGridAddress,
     oracleGridAbi,
-    getAccount("main", provider)
+    getAccount("third", provider)
   );
 
   async function claimProcess(contract, requestId) {
@@ -109,6 +109,7 @@ async function main() {
           requestId,
           BigInt(backendResponse.data)
         );
+        logger.info("POST request successful:", backendResponse);
         logger.info(`Successfully fulfilled request ${requestId}`);
       } else {
         logger.info(`Request Already Taken ${requestId}`);

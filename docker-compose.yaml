@@ -6,9 +6,11 @@ services:
       context: ./oracle_node
       dockerfile: Dockerfile
     image: oracle_node_1:v1
-
     env_file:
       - oracle_node/.env
+    volumes:
+      - ./oracle_logs/worker.log:/app/worker.log # Monta un archivo en lugar de un directorio
+
   redis:
     image: redis:latest
     container_name: redis-oracle_node_1
