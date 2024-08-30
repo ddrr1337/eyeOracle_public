@@ -3,3 +3,8 @@ deploy router
 deploy grid
 set both address in hardhat config
 
+
+
+TODO
+
+por que con la cuenta 3 no funciona???

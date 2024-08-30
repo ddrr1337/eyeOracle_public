@@ -48,7 +48,9 @@ async function main() {
     });
   });
 
-  logger.info(` Listening for OracleRequestHttp events...`);
+  logger.info(
+    ` Listening OracleRouter at ${oracleRouterAddress} for OracleRequestHttp events...`
+  );
 }
 
 main().catch((error) => {

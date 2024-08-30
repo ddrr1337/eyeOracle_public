@@ -48,7 +48,7 @@ contract OracleRouter is ConfirmedOwner {
         uint256 _requestId,
         uint256 response
     ) external onlyAllowedNodes {
-        IConsumer(consumer).fulfillRequest(_requestId, response);
+        IConsumer(consumer).handleOracleFulfillment(_requestId, response);
     }
 
     function billingCallBack() internal {

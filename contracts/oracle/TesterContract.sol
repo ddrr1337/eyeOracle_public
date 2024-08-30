@@ -52,7 +52,7 @@ contract TesterContract is OracleClient {
     function fulfillRequest(
         uint256 requestId,
         uint256 response
-    ) external override {
+    ) internal override {
         testerResponseRequestId = requestId;
         testerResponse = response;
     }

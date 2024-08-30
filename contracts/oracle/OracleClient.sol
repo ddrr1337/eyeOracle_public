@@ -29,5 +29,17 @@ abstract contract OracleClient {
     function fulfillRequest(
         uint256 requestId,
         uint256 response
-    ) external virtual;
+    ) internal virtual;
+
+    function handleOracleFulfillment(
+        uint256 requestId,
+        uint256 response
+    ) external {
+        require(
+            msg.sender == address(i_router),
+            "Only OracleRouter can fulfill"
+        );
+
+        fulfillRequest(requestId, response);
+    }
 }

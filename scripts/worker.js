@@ -34,7 +34,7 @@ function sleep(ms) {
 
 async function main() {
   const ORACLE_ID = process.env.ORACLE_ID;
-  logger.info(` Node ${ORACLE_ID} Worker ready for task...`);
+
   const provider = new ethers.providers.JsonRpcProvider(
     process.env.SEPOLIA_RPC
   );
@@ -43,10 +43,14 @@ async function main() {
   const oracleGridAddress = networkConfig[chainId].ORACLE_GRID_ADDRESS;
   const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
 
+  logger.info(
+    ` Node ${ORACLE_ID} Worker attached to OracleRouter ${oracleRouterAddress} ready for task...`
+  );
+
   const oracleGridContract = new ethers.Contract(
     oracleGridAddress,
     oracleGridAbi,
-    getAccount("third", provider)
+    getAccount("main", provider)
   );
 
   async function claimProcess(contract, requestId) {
@@ -109,7 +113,9 @@ async function main() {
           requestId,
           BigInt(backendResponse.data)
         );
-        logger.info("POST request successful:", backendResponse);
+
+        logger.info(`POST request successful`);
+        logger.info(`BACKEND response: ${backendResponse.data}`);
         logger.info(`Successfully fulfilled request ${requestId}`);
       } else {
         logger.info(`Request Already Taken ${requestId}`);
