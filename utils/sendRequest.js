@@ -1,9 +1,10 @@
-async function sendRequest(requestId, decodedData, headers) {
+async function sendRequest(requestId, decodedData, originalCaller, headers) {
   try {
     const { url, method, args } = decodedData;
 
     const requestBody = {
       requestId: requestId,
+      originalCaller: originalCaller,
     };
 
     args.forEach((arg, index) => {

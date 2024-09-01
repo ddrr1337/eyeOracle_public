@@ -2,13 +2,8 @@
 pragma solidity ^0.8.19;
 
 import {IOracleRouter} from "./interfaces/IOracleRouter.sol";
-import {OracleRequest} from "./lib/OracleRequest.sol";
 
-/// @title The Chainlink Functions client contract
-/// @notice Contract developers can inherit this contract in order to make Chainlink Functions requests
 abstract contract OracleClient {
-    using OracleRequest for OracleRequest.Request;
-
     IOracleRouter internal immutable i_router;
 
     event RequestSent(bytes32 indexed id);
@@ -18,11 +13,8 @@ abstract contract OracleClient {
         i_router = IOracleRouter(router);
     }
 
-    function _sendRequest(
-        bytes memory data,
-        address consumer
-    ) internal returns (uint256) {
-        uint256 requestId = i_router.startRequest(data, consumer);
+    function _sendRequest(bytes memory data) internal returns (uint256) {
+        uint256 requestId = i_router.startRequest(data);
         return requestId;
     }
 

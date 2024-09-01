@@ -2,7 +2,7 @@ const redis = require("redis");
 
 async function main() {
   const redisClient = redis.createClient({
-    url: "redis://138.201.253.154:6379",
+    url: `redis://${process.env.REDIS_SERVER}:${process.env.REDIS_PORT}`,
   });
 
   redisClient.on("connect", () => {

@@ -10,4 +10,4 @@ fi
 NETWORK=$1
 
 # Ejecuta el comando de Hardhat con la red especificada
-yarn hardhat run scripts/00-getStocksArray.js --network $NETWORK
+yarn hardhat run scripts/getRouterAndGridAddress.js --network $NETWORK

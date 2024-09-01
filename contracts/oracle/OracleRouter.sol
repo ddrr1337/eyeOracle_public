@@ -6,14 +6,19 @@ import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/Confir
 contract OracleRouter is ConfirmedOwner {
     uint256 public requestId;
     bytes public testerBytes;
-    uint256 deploy = 1;
+    uint256 deploy = 2;
     mapping(address consumer => bool allowed) public allowedConsumer;
     mapping(address nodeCaller => bool allowed) public allowedNodes;
+
     address public mainCaller;
+
+    //test
+    address eventCaller;
 
     event OracleRequestHttp(
         uint256 indexed requestId,
         address indexed consumer,
+        address indexed originalCaller,
         bytes request
     );
 
@@ -31,14 +36,14 @@ contract OracleRouter is ConfirmedOwner {
         mainCaller = newMainCaller;
     }
 
-    function startRequest(
-        bytes memory data,
-        address consumer
-    ) external returns (uint256) {
+    function startRequest(bytes memory data) external returns (uint256) {
+        require(allowedConsumer[msg.sender], "Consumer Not Allowed");
+
+        eventCaller = tx.origin;
         requestId++;
         testerBytes = data;
 
-        emit OracleRequestHttp(requestId, consumer, data);
+        emit OracleRequestHttp(requestId, msg.sender, tx.origin, data);
 
         return requestId;
     }
@@ -57,7 +62,7 @@ contract OracleRouter is ConfirmedOwner {
         payable(mainCaller).transfer(address(this).balance);
     }
 
-    function addConsumer(address consumer) external {
+    function addConsumer(address consumer) external onlyOwner {
         allowedConsumer[consumer] = true;
     }
 

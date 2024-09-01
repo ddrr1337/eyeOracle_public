@@ -24,7 +24,7 @@ async function main() {
   const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
 
   const ORACLE_ROUTER_ABI = [
-    "event OracleRequestHttp(uint256 indexed requestId,address indexed consumer, bytes request)",
+    "event OracleRequestHttp(uint256 indexed requestId,address indexed consumer,address indexed originalCaller, bytes request)",
   ];
 
   const provider = new ethers.providers.JsonRpcProvider(
@@ -38,15 +38,19 @@ async function main() {
   );
 
   // Escucha eventos
-  oracleRouter.on("OracleRequestHttp", async (requestId, consumer, request) => {
-    logger.info(`Event detected: RequestId ${requestId.toString()}`);
+  oracleRouter.on(
+    "OracleRequestHttp",
+    async (requestId, consumer, originalCaller, request) => {
+      logger.info(`Event detected: RequestId ${requestId.toString()}`);
 
-    await requestQueue.add({
-      requestId: requestId.toString(),
-      consumer,
-      request,
-    });
-  });
+      await requestQueue.add({
+        requestId: requestId.toString(),
+        consumer,
+        originalCaller,
+        request,
+      });
+    }
+  );
 
   logger.info(
     ` Listening OracleRouter at ${oracleRouterAddress} for OracleRequestHttp events...`

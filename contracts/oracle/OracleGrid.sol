@@ -7,14 +7,19 @@ contract OracleGrid is ConfirmedOwner {
 
     mapping(uint256 requestId => uint64 tookByOracleId) public requstIdStatus;
     mapping(address nodeCaller => bool isAllowed) public allowedNodeCallers;
-    mapping(address consumer => bool isAllowedConsumer) public allowedConsumer;
     address[] public nodeCallers;
-    uint256 deployer = 4;
+    uint256 deployer = 8; // only to force hardhat to redeploy
 
-    constructor(address allowedCaller) ConfirmedOwner(msg.sender) {
-        allowedNodeCallers[allowedCaller] = true;
+    // 2 nodes setup
+    constructor(
+        address allowedCaller1,
+        address allowedCaller2
+    ) ConfirmedOwner(msg.sender) {
+        allowedNodeCallers[allowedCaller1] = true;
+        allowedNodeCallers[allowedCaller2] = true;
 
-        nodeCallers.push(allowedCaller);
+        nodeCallers.push(allowedCaller1);
+        nodeCallers.push(allowedCaller2);
     }
 
     modifier onlyAllowedNodes() {

@@ -14,11 +14,13 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = network.config.chainId;
 
+  const account2 = getAccount("sec", provider);
+
   const gasMultiplier = 1.2;
 
   await getGasPrice();
 
-  const constructorArgs = [account.address];
+  const constructorArgs = [account.address, account2.address];
 
   const oracleGridDeploy = await deploy("OracleGrid", {
     from: deployer,

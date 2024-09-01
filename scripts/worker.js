@@ -12,6 +12,7 @@ const oracleRouterAbi =
 const winston = require("winston");
 
 const SLEEP_TIME = 1000;
+const MAX_GAS_ON_CALLBACK = process.env.MAX_GAS_ON_CALLBACK;
 
 const logger = winston.createLogger({
   level: "info",
@@ -50,7 +51,7 @@ async function main() {
   const oracleGridContract = new ethers.Contract(
     oracleGridAddress,
     oracleGridAbi,
-    getAccount("main", provider)
+    getAccount(process.env.NODE_SELECTED_WALLET, provider)
   );
 
   async function claimProcess(contract, requestId) {
@@ -75,9 +76,11 @@ async function main() {
   }
 
   requestQueue.process(async (job) => {
-    const { requestId, consumer, request } = job.data;
+    const { requestId, consumer, originalCaller, request } = job.data;
 
     try {
+      console.log("request", request);
+      console.log(job.data);
       logger.info(`Processing request ${requestId}`);
 
       const success = await claimProcess(oracleGridContract, requestId);
@@ -99,19 +102,23 @@ async function main() {
         const backendResponse = await sendRequest(
           requestId,
           decodedRequest,
+          originalCaller,
           headers
         );
 
         const routerContract = new ethers.Contract(
           oracleRouterAddress,
           oracleRouterAbi,
-          getAccount("main", provider)
+          getAccount(process.env.NODE_SELECTED_WALLET, provider)
         );
 
         await routerContract.fulfill(
           consumer,
           requestId,
-          BigInt(backendResponse.data)
+          BigInt(backendResponse.data),
+          {
+            gasLimit: MAX_GAS_ON_CALLBACK,
+          }
         );
 
         logger.info(`POST request successful`);
