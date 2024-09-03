@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {OracleRequest} from "./oracle/lib/OracleRequest.sol";
 import {OracleClient} from "./oracle/OracleClient.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol"; //not sure if this is needed
 
 contract ExampleContract is OracleClient, ReentrancyGuard {
     using OracleRequest for OracleRequest.Request;
@@ -27,12 +27,15 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
 
     function sendRequest() external payable nonReentrant {
         uint256 gasCost = gasCostFulfill();
+        // comment this requirement on fist  deploy to check first how much gas cost your fulfill callback
+        // then pass _fulfillRequestGasUsed to constructor with the real gas used in a second deploy
+        // not proud of this!
         require(
             msg.value > gasCost,
             "ETH sent is less than gas cost for the callback"
         );
 
-        string memory url = "http://dummyAddress/api/";
+        string memory url = "https://dummyAddress.com/api/";
 
         // example of args
         string[] memory args = new string[](3);
@@ -49,7 +52,7 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
 
         bytes memory argsData = req.encodeCBOR();
 
-        uint256 requestId = _sendRequest(argsData);
+        uint256 requestId = _sendRequest(argsData); //this will emit a event on OracleRouter that nodes will caputure
 
         // pay the fees for the oracle callback
         (bool success, ) = address(i_router).call{value: msg.value}("");

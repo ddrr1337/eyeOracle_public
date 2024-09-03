@@ -13,7 +13,7 @@ async function main() {
   const oracleRouterDeplotment = await deployments.get("OracleRouter");
   const oracleRouterAddress = oracleRouterDeplotment.address;
 
-  const oracleGridDeplotment = await deployments.get("OracleRouter");
+  const oracleGridDeplotment = await deployments.get("OracleGrid");
   const oracleGridAddress = oracleGridDeplotment.address;
 
   console.log("Router Address: ", oracleRouterAddress);

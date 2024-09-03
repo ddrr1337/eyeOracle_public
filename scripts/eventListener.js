@@ -3,6 +3,7 @@ const { network, ethers } = require("hardhat");
 const { requestQueue } = require("./queue");
 const { networkConfig } = require("../helper-hardhat-config");
 const winston = require("winston");
+const { checkRedis } = require("../utils/checkRedis");
 
 const logger = winston.createLogger({
   level: "info",
@@ -20,6 +21,15 @@ const logger = winston.createLogger({
 });
 
 async function main() {
+  const isRedisConnected = await checkRedis();
+
+  if (!isRedisConnected) {
+    logger.error("Redis server NOT CONNECTED");
+    throw new Error("Redis connection failed. Exiting process.");
+  }
+
+  logger.info("Redis server ALIVE");
+
   const chainId = network.config.chainId;
   const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
 
@@ -53,7 +63,7 @@ async function main() {
   );
 
   logger.info(
-    ` Listening OracleRouter at ${oracleRouterAddress} for OracleRequestHttp events...`
+    `Listening OracleRouter at ${oracleRouterAddress} for OracleRequestHttp events...`
   );
 }
 

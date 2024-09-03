@@ -79,8 +79,6 @@ async function main() {
     const { requestId, consumer, originalCaller, request } = job.data;
 
     try {
-      console.log("request", request);
-      console.log(job.data);
       logger.info(`Processing request ${requestId}`);
 
       const success = await claimProcess(oracleGridContract, requestId);

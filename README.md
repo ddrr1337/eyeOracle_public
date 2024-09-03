@@ -38,7 +38,7 @@ Each node is "bound" to a Redis server for queue and task management. This repos
 8. Run the following command:
    ```bash
    yarn concurrently "yarn hardhat run scripts/eventListener.js --network sepolia" "yarn hardhat run scripts/worker.js --network sepolia"
-
+9. Node will generate a `worker.log` to save all node actions.
 
 When the node processing the request to the API receives a response, it will call the fulfill() on `OracleRouter`.
 
@@ -48,6 +48,6 @@ Important.- Check first in a "dummy deploy" how much gas use your fuifillRequest
 Important.- set up a gasLimit for the nodes on fulfill() callback, in .env file.
 
 ## Summary
-This is a minimalist implementation of Chainlink's services that uses nodes sequentially rather than in parallel, as Chainlink does. This approach avoids the known issue of Chainlink calling APIs with a POST request.
+This is a minimalist implementation of Chainlink's services that uses nodes sequentially rather than in parallel, as Chainlink does. This approach avoids the known issue of Chainlink multi calling APIs with a POST request.
 
 I understand that this might be a complex project with too many variables. If you wish, you can contact me at [linkedin](https://www.linkedin.com/in/agustin-gonzalez-ribas-71146b12a/)
