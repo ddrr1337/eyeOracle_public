@@ -6,7 +6,7 @@ async function main() {
   const provider = new ethers.providers.JsonRpcProvider(
     process.env.ALCHEMY_RPC
   );
-  const account = getAccount("main", provider);
+  const account = getAccount("third", provider);
   const gasUnitsCallback = 100_000;
 
   const gasPrice = await getGasPrice();

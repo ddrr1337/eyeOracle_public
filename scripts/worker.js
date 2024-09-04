@@ -45,7 +45,7 @@ async function main() {
   const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
 
   logger.info(
-    ` Node ${ORACLE_ID} Worker attached to OracleRouter ${oracleRouterAddress} ready for task...`
+    `Node ${ORACLE_ID} Worker attached to OracleRouter ${oracleRouterAddress} ready for task...`
   );
 
   const oracleGridContract = new ethers.Contract(

@@ -14,6 +14,5 @@ COPY . .
 
 RUN yarn hardhat compile
 
-RUN yarn add concurrently
 
 CMD ["yarn", "concurrently", "yarn hardhat run scripts/eventListener.js --network sepolia", "yarn hardhat run scripts/worker.js --network sepolia"]
