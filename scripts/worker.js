@@ -140,7 +140,7 @@ async function main() {
         logger.info(`${decodedRequest.method} request ended`);
         logger.info(`BACKEND response: ${backendResponse.data}`);
         logger.info(
-          `Successfully fulfilled request to consumer contract ${requestId}`
+          `Successfully fulfilled request ${requestId} to consumer contract: ${consumer}`
         );
       } else {
         logger.info(`Request ${requestId} Already Taken `);
