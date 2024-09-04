@@ -28,7 +28,7 @@ async function main() {
   const routerAddress = await exampleContract.oracleRouter();
 
   console.log("Caller: ", account.address);
-  console.log("Example Contract: ", exampleAddress);
+  console.log("ExampleContract: ", exampleAddress);
   console.log("OracleRouter Address: ", routerAddress);
 
   const sendRequestGetTx = await exampleContract.exampleSendRequestGET({

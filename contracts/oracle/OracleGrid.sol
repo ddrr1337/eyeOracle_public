@@ -8,7 +8,7 @@ contract OracleGrid is ConfirmedOwner {
     mapping(uint256 requestId => uint64 tookByOracleId) public requstIdStatus;
     mapping(address nodeCaller => bool isAllowed) public allowedNodeCallers;
     address[] public nodeCallers;
-    uint256 deployer = 9; // only to force hardhat to redeploy
+    uint256 deployer = 10; // only to force hardhat to redeploy
 
     // 2 nodes setup
     constructor(

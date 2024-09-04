@@ -10,6 +10,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   let rpcUrl = network.config.url;
   let provider = new ethers.providers.JsonRpcProvider(rpcUrl);
   const account = getAccount("main", provider);
+  const account2 = getAccount("sec", provider);
   const { deployer } = await getNamedAccounts();
   const chainId = network.config.chainId;
 
@@ -17,7 +18,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   await getGasPrice();
 
-  const constructorArgs = [account.address];
+  const constructorArgs = [account.address, account2.address];
 
   const oracleRouterDeploy = await deploy("OracleRouter", {
     from: deployer,

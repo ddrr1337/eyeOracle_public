@@ -119,7 +119,7 @@ async function main() {
           }
         );
 
-        logger.info(`POST request successful`);
+        logger.info(`${decodedRequest.method} request successful`);
         logger.info(`BACKEND response: ${backendResponse.data}`);
         logger.info(`Successfully fulfilled request ${requestId}`);
       } else {
