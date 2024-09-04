@@ -9,8 +9,7 @@ services:
     env_file:
       - oracle_node/.env
     volumes:
-      - ./oracle_logs/worker.log:/app/worker.log # Monta un archivo en lugar de un directorio
-
+      - ./oracle_logs/worker.log:/app/worker.log
   redis:
     image: redis:latest
     container_name: redis-oracle_node_1
