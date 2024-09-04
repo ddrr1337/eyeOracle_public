@@ -113,7 +113,7 @@ async function main() {
         await routerContract.fulfill(
           consumer,
           requestId,
-          BigInt(backendResponse.data),
+          BigInt(backendResponse.data), //.data is my response from my API {'data':<int>}, change depending of your API reposnse
           {
             gasLimit: MAX_GAS_ON_CALLBACK,
           }

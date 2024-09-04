@@ -1,10 +1,19 @@
 
-deploy router
-deploy grid
+deploy oracleRouter
+deploy oracleGrid
 set both address in hardhat config
+deploy ExampleContract
+    addConsumer()
 
 
 
 TODO
 
-por que con la cuenta 3 no funciona???
+improve gas calback system???
+maybe telling user that has to calculate gas on fulfill and then pass to constructor then in event seng gas used to node and force nodes no to spend more that that gas used??
+handle secrets??
+how? merkele tree??? 
+db atteched to nodes ?
+save onchain encripted secrets???
+dont know yet..
+

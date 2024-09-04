@@ -66,11 +66,11 @@ contract OracleRouter is ConfirmedOwner {
         allowedConsumer[consumer] = true;
     }
 
-    function removeConsumer(address consumer) external {
+    function removeConsumer(address consumer) external onlyOwner {
         allowedConsumer[consumer] = false;
     }
 
-    function addNodeCaller(address nodeCaller) external {
+    function addNodeCaller(address nodeCaller) external onlyOwner {
         allowedNodes[nodeCaller] = true;
     }
 

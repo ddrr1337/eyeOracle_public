@@ -1,12 +1,10 @@
 const { ethers, deployments, network } = require("hardhat");
-const { getAccount } = require("../utils/getAccount");
 const { getGasPrice } = require("../utils/getGasPrice");
 
 async function main() {
   const provider = new ethers.providers.JsonRpcProvider(
     process.env.ALCHEMY_RPC
   );
-  const account = getAccount("sec", provider);
 
   await getGasPrice();
 

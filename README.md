@@ -1,4 +1,5 @@
 # Basic Node Architecture Implementation
+## PROYECT NOT TESTED, DONT USE IN PRODUCTION!
 
 This project is intended for developers who have control over both the destination API and the source contracts involved in the transaction. If you do not control both, you may encounter issues with gas calculations for the oracle callback, as well as the necessary authorization for accessing the destination API. **NODES DO NOT HANDLE SECRETS; THIS MUST BE MANAGED BY THE DESTINATION API.**
 

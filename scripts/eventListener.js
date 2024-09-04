@@ -28,7 +28,7 @@ async function main() {
     throw new Error("Redis connection failed. Exiting process.");
   }
 
-  logger.info("Redis server ALIVE");
+  logger.info("Redis server ONLINE");
 
   const chainId = network.config.chainId;
   const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;

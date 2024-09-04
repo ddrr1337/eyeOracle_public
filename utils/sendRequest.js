@@ -2,20 +2,25 @@ async function sendRequest(requestId, decodedData, originalCaller, headers) {
   try {
     const { url, method, args } = decodedData;
 
-    const requestBody = {
-      requestId: requestId,
-      originalCaller: originalCaller,
-    };
-
-    args.forEach((arg, index) => {
-      requestBody[`arg${index}`] = arg;
-    });
-
-    const response = await fetch(url, {
+    let options = {
       method: method,
       headers: headers,
-      body: JSON.stringify(requestBody),
-    });
+    };
+
+    if (method !== "GET") {
+      const requestBody = {
+        requestId: requestId,
+        originalCaller: originalCaller,
+      };
+
+      args.forEach((arg, index) => {
+        requestBody[`arg${index}`] = arg;
+      });
+
+      options.body = JSON.stringify(requestBody);
+    }
+
+    const response = await fetch(url, options);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -25,7 +30,7 @@ async function sendRequest(requestId, decodedData, originalCaller, headers) {
 
     return responseData;
   } catch (error) {
-    console.error("Failed to post to API:", error);
+    console.error("Failed to send request to API:", error);
     return null;
   }
 }

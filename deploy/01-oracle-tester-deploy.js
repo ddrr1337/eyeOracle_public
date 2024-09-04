@@ -9,6 +9,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments;
   let rpcUrl = network.config.url;
   let provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+  const account = getAccount("main", provider);
+
   const { deployer } = await getNamedAccounts();
   const chainId = network.config.chainId;
 
@@ -18,20 +20,19 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   const oracleRouterDeployment = await deployments.get("OracleRouter");
   const oracleRouterAddress = oracleRouterDeployment.address;
+  const oracleRouterAbi = oracleRouterDeployment.abi;
 
-  const oracleGridDeployment = await deployments.get("OracleGrid");
-  const oracleGridAddress = oracleGridDeployment.address;
-  const oracleGridAbi = oracleGridDeployment.abi;
-
-  const oracleGridContract = new ethers.Contract(
-    oracleGridAddress,
-    oracleGridAbi,
-    getAccount("main", provider)
+  const oracleRouterContract = new ethers.Contract(
+    oracleRouterAddress,
+    oracleRouterAbi,
+    account
   );
 
-  const constructorArgs = [oracleRouterAddress];
+  const fulfillRequestGasUsed = 100_000;
 
-  const testerContractDeploy = await deploy("TesterContract", {
+  const constructorArgs = [oracleRouterAddress, fulfillRequestGasUsed];
+
+  const exampleContractDeploy = await deploy("ExampleContract", {
     from: deployer,
     args: constructorArgs,
     log: true,
@@ -40,25 +41,24 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
 
   console.log(
-    "----------------------- TESTER CONTRACT DEPLOYED --------------------------"
+    "----------------------- EXAMPLE CONTRACT DEPLOYED --------------------------"
   );
 
   const verifyContract = networkConfig[chainId].verify;
 
   if (verifyContract) {
-    await verify(testerContractDeploy.address, constructorArgs);
+    await verify(exampleContractDeploy.address, constructorArgs);
     console.log(
       "----------------------- VERIFICATION COMPLETED --------------------------"
     );
   }
 
-  const addConsumer = await oracleGridContract.addConsumer(
-    testerContractDeploy.address
+  const addConsumerTx = await oracleRouterContract.addConsumer(
+    exampleContractDeploy.address
   );
-
   console.log(
     "----------------------- ADD CONSUMER COMPLETED --------------------------"
   );
 };
 
-module.exports.tags = ["all", "testerContract"];
+module.exports.tags = ["all", "example"];
