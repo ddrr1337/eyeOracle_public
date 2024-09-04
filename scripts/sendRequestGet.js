@@ -32,7 +32,7 @@ async function main() {
   console.log("OracleRouter Address: ", routerAddress);
 
   const sendRequestGetTx = await exampleContract.exampleSendRequestGET({
-    value: ethToSendInTx,
+    value: BigInt(ethToSendInTx),
   });
   console.log("Tx:", sendRequestGetTx.hash);
 

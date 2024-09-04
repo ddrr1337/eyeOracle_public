@@ -19,6 +19,7 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
         public s_requestIdToRequest;
 
     uint256 public fulfillRequestGasUsed;
+    mapping(uint256 => uint256) public exampleFulfillResponse;
 
     constructor(
         address oracleRouterAddress,
@@ -116,7 +117,7 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
         uint256 requestId,
         uint256 response
     ) internal override {
-        //build here your logic for the oracle callback
+        exampleFulfillResponse[requestId] = response;
     }
 
     function gasCostFulfill() public view returns (uint256) {
