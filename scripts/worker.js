@@ -123,7 +123,7 @@ async function main() {
         logger.info(`BACKEND response: ${backendResponse.data}`);
         logger.info(`Successfully fulfilled request ${requestId}`);
       } else {
-        logger.info(`Request Already Taken ${requestId}`);
+        logger.info(`Request ${requestId} Already Taken `);
       }
     } catch (error) {
       logger.error(`Error processing request ${requestId}: ${error.message}`);
