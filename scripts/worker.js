@@ -79,30 +79,48 @@ async function main() {
     const { requestId, consumer, originalCaller, request } = job.data;
 
     try {
-      logger.info(`Processing request ${requestId}`);
+      logger.info(`Processing request ${requestId}...`);
 
       const success = await claimProcess(oracleGridContract, requestId);
 
-      logger.info(`Task assignment success? ${success}`);
       if (success) {
-        logger.info(`Request ${requestId} processed successfully.`);
+        logger.info(
+          `Task of Request ${requestId} assigned to this node, node_id: ${ORACLE_ID}`
+        );
 
         const decodedRequest = await decodeCBOR(request);
         logger.info(`Decoded request: ${JSON.stringify(decodedRequest)}`);
 
         const token = process.env.NODE_ACCESS;
 
+        // this headers are setted to call a python django backend, modify this headers depending of your backend
         const headers = {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         };
 
-        const backendResponse = await sendRequest(
-          requestId,
-          decodedRequest,
-          originalCaller,
-          headers
-        );
+        let backendResponse;
+        try {
+          backendResponse = await sendRequest(
+            requestId,
+            decodedRequest,
+            originalCaller,
+            headers
+          );
+
+          if (!backendResponse || !backendResponse.data) {
+            logger.error(
+              "Invalid response from backend, returning uint256=0 to consumer contract"
+            );
+            backendResponse = { data: 0 };
+          }
+        } catch (sendRequestError) {
+          logger.error(`Error in sendRequest: ${sendRequestError.message}`);
+          logger.error(
+            "Error in sendRequest, returning uint256=0 to consumer contract"
+          );
+          backendResponse = { data: 0 };
+        }
 
         const routerContract = new ethers.Contract(
           oracleRouterAddress,
@@ -119,9 +137,11 @@ async function main() {
           }
         );
 
-        logger.info(`${decodedRequest.method} request successful`);
+        logger.info(`${decodedRequest.method} request ended`);
         logger.info(`BACKEND response: ${backendResponse.data}`);
-        logger.info(`Successfully fulfilled request ${requestId}`);
+        logger.info(
+          `Successfully fulfilled request to consumer contract ${requestId}`
+        );
       } else {
         logger.info(`Request ${requestId} Already Taken `);
       }
