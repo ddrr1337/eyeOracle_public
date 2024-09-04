@@ -10,7 +10,7 @@ contract OracleRouter is ConfirmedOwner {
     mapping(address consumer => bool allowed) public allowedConsumer;
     mapping(address nodeCaller => bool allowed) public allowedNodes;
 
-    address public mainCaller;
+    address[] public nodeCallers; // Arreglo para almacenar los nodos permitidos
 
     //test
     address eventCaller;
@@ -22,9 +22,14 @@ contract OracleRouter is ConfirmedOwner {
         bytes request
     );
 
-    constructor(address nodeCaller) ConfirmedOwner(msg.sender) {
-        allowedNodes[nodeCaller] = true;
-        mainCaller = nodeCaller;
+    constructor(
+        address nodeCaller0,
+        address nodeCaller1
+    ) ConfirmedOwner(msg.sender) {
+        allowedNodes[nodeCaller0] = true;
+        allowedNodes[nodeCaller1] = true;
+        nodeCallers.push(nodeCaller0);
+        nodeCallers.push(nodeCaller1);
     }
 
     modifier onlyAllowedNodes() {
@@ -32,13 +37,14 @@ contract OracleRouter is ConfirmedOwner {
         _;
     }
 
-    function changeMainCaller(address newMainCaller) external onlyOwner {
-        mainCaller = newMainCaller;
+    modifier onlyAllowedConsumers() {
+        require(allowedConsumer[msg.sender], "Consumer Not Allowed");
+        _;
     }
 
-    function startRequest(bytes memory data) external returns (uint256) {
-        require(allowedConsumer[msg.sender], "Consumer Not Allowed");
-
+    function startRequest(
+        bytes memory data
+    ) external onlyAllowedConsumers returns (uint256) {
         eventCaller = tx.origin;
         requestId++;
         testerBytes = data;
@@ -56,12 +62,6 @@ contract OracleRouter is ConfirmedOwner {
         IConsumer(consumer).handleOracleFulfillment(_requestId, response);
     }
 
-    function billingCallBack() internal {
-        // Transfiere el saldo total del contrato a `mainCaller`
-        require(address(this).balance > 0, "No funds available to transfer");
-        payable(mainCaller).transfer(address(this).balance);
-    }
-
     function addConsumer(address consumer) external onlyOwner {
         allowedConsumer[consumer] = true;
     }
@@ -72,9 +72,39 @@ contract OracleRouter is ConfirmedOwner {
 
     function addNodeCaller(address nodeCaller) external onlyOwner {
         allowedNodes[nodeCaller] = true;
+        nodeCallers.push(nodeCaller);
+    }
+
+    function removeNodeCaller(address nodeCaller) external onlyOwner {
+        require(allowedNodes[nodeCaller], "NodeCaller not found");
+
+        allowedNodes[nodeCaller] = false;
+
+        for (uint256 i = 0; i < nodeCallers.length; i++) {
+            if (nodeCallers[i] == nodeCaller) {
+                nodeCallers[i] = nodeCallers[nodeCallers.length - 1];
+                nodeCallers.pop();
+                break;
+            }
+        }
     }
 
     receive() external payable {
-        billingCallBack();
+        require(address(this).balance > 0, "No funds available to transfer");
+
+        // Find lower ETH balance nodeCaller
+        address nodeWithLowestBalance = nodeCallers[0];
+        uint256 lowestBalance = nodeWithLowestBalance.balance;
+
+        for (uint256 i = 1; i < nodeCallers.length; i++) {
+            uint256 currentBalance = nodeCallers[i].balance;
+            if (currentBalance < lowestBalance) {
+                nodeWithLowestBalance = nodeCallers[i];
+                lowestBalance = currentBalance;
+            }
+        }
+
+        // Transfer to lower balance nodeCaller
+        payable(nodeWithLowestBalance).transfer(address(this).balance);
     }
 }
