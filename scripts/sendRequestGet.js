@@ -10,7 +10,6 @@ async function main() {
   const gasUnitsCallback = 100_000;
 
   const gasPrice = await getGasPrice();
-  console.log(gasPrice * 1);
 
   const ethToSendInTx = gasUnitsCallback * gasPrice * 1.5;
   console.log("ETH to Send wei:", ethToSendInTx);

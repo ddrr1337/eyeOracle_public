@@ -44,8 +44,8 @@ Each node is "bound" to a Redis server for queue and task management. This repos
 When the node processing the request to the API receives a response, it will call the fulfill() on `OracleRouter`.
 
 ## Gas Management in the Callback
-I am not particularly proud of how gas payment is handled in the oracle callback, but so far, I haven't found a more efficient way to do it. The function implemented in the original contract must include payment and should make a call with msg.value to the OracleRouter. The OracleRouter will then receive the payment, trigger the receive function, and pay the callback gas to the assigned wallet (in this case, the same wallet used by the node to perform the callback). This way, the caller in the original contract will cover the gas costs of the node's callback.
-Important.- Check first in a "dummy deploy" how much gas use your fuifillRequest, and then pass it in the next deploy constructor.
+I am not particularly proud of how gas payment is handled in the oracle callback, but so far, I haven't found a more efficient way to do it. The function implemented in the original contract must include payment and should make a call with msg.value to the OracleRouter. The OracleRouter will then receive the payment, trigger the receive function, and pay the callback gas to the assigned wallet (in this case, the same wallet used by the node to perform the callback). This way, the caller in the original contract will cover the gas costs of the node's callback. 
+Important.- Check first in a "dummy deploy" how much gas use your fuifillRequest, and then pass it in the next deploy constructor. 
 Important.- set up a gasLimit for the nodes on fulfill() callback, in .env file.
 
 ## Summary
