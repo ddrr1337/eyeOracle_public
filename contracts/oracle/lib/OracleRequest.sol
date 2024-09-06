@@ -7,8 +7,6 @@ library OracleRequest {
     using CBOR for CBOR.CBORBuffer;
 
     error EmptyArgs();
-    error EmptyUrl();
-    error EmptyRequester();
 
     uint256 internal constant DEFAULT_BUFFER_SIZE = 256;
 
