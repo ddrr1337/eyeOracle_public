@@ -6,14 +6,10 @@ import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/Confir
 contract OracleRouter is ConfirmedOwner {
     uint256 public requestId;
     bytes public testerBytes;
-    uint256 deploy = 2;
     mapping(address consumer => bool allowed) public allowedConsumer;
     mapping(address nodeCaller => bool allowed) public allowedNodes;
 
     address[] public nodeCallers; // Arreglo para almacenar los nodos permitidos
-
-    //test
-    address eventCaller;
 
     event OracleRequestHttp(
         uint256 indexed requestId,
@@ -22,6 +18,7 @@ contract OracleRouter is ConfirmedOwner {
         bytes request
     );
 
+    //pass as many wallets as nodes you deploy
     constructor(
         address nodeCaller0,
         address nodeCaller1
@@ -45,7 +42,6 @@ contract OracleRouter is ConfirmedOwner {
     function startRequest(
         bytes memory data
     ) external onlyAllowedConsumers returns (uint256) {
-        eventCaller = tx.origin;
         requestId++;
         testerBytes = data;
 
@@ -89,6 +85,7 @@ contract OracleRouter is ConfirmedOwner {
         }
     }
 
+    // calculate lowest blan
     receive() external payable {
         require(address(this).balance > 0, "No funds available to transfer");
 
