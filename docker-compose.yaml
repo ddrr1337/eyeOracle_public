@@ -3,13 +3,14 @@ version: "3.1"
 services:
   oracle_node_1:
     build:
-      context: ./oracle_node
+      context: ./eyeOracle
       dockerfile: Dockerfile
-    image: oracle_node_1:v1
+    image: oracle_node1:v1
     env_file:
-      - oracle_node/.env
+      - eyeOracle/.env
     volumes:
-      - ./oracle_logs/worker.log:/app/worker.log
+      - ./oracle_logs/worker.log:/app/worker.log # Monta un archivo en lugar de un directorio
+
   redis:
     image: redis:latest
     container_name: redis-oracle_node_1
