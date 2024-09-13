@@ -50,8 +50,11 @@ contract OracleGrid is ConfirmedOwner {
         uint256 gasUsed = startGas - gasleft(); // Calculate gas used
         uint256 gasCost = gasUsed * tx.gasprice; // Calculate the cost of gas
 
-        // Transfer the gas cost to the caller
-        payable(msg.sender).transfer(gasCost);
+        // Check if the contract has enough ETH to cover the gas cost
+        if (address(this).balance >= gasCost) {
+            // Transfer the gas cost to the caller if there is enough balance
+            payable(msg.sender).transfer(gasCost);
+        }
     }
 
     // Function to withdraw all Ether to the owner

@@ -32,6 +32,7 @@ async function main() {
 
   const chainId = network.config.chainId;
   const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
+  const oracleGridAddress = networkConfig[chainId].ORACLE_GRID_ADDRESS;
 
   const ORACLE_ROUTER_ABI = [
     "event OracleRequestHttp(uint256 indexed requestId,address indexed consumer,address indexed originalCaller, bytes request)",
@@ -65,6 +66,7 @@ async function main() {
   logger.info(
     `Listening OracleRouter at ${oracleRouterAddress} for OracleRequestHttp events...`
   );
+  logger.info(`OracleGrid setted at ${oracleGridAddress}`);
 }
 
 main().catch((error) => {
