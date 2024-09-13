@@ -5,8 +5,8 @@ import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/Confir
 contract OracleGrid is ConfirmedOwner {
     event OracleAssignment(uint256 indexed requestId, uint64 indexed oracleId);
 
-    mapping(uint256 requestId => uint64 tookByOracleId) public requstIdStatus;
-    mapping(address nodeCaller => bool isAllowed) public allowedNodeCallers;
+    mapping(uint256 => uint64) public requstIdStatus;
+    mapping(address => bool) public allowedNodeCallers;
     address[] public nodeCallers;
 
     // 2 nodes setup
@@ -26,16 +26,40 @@ contract OracleGrid is ConfirmedOwner {
         _;
     }
 
+    // Function to receive Ether
+    receive() external payable {}
+
+    // Fallback function to handle any incoming Ether
+    fallback() external payable {}
+
     function oracleAssignWork(
         uint256 _requestId,
         uint64 oracleId
     ) external onlyAllowedNodes {
         require(
             requstIdStatus[_requestId] == 0,
-            "RequestId took by other oracle"
+            "RequestId taken by other oracle"
         );
+
+        uint256 startGas = gasleft(); // Start gas measurement
+
         requstIdStatus[_requestId] = oracleId;
 
         emit OracleAssignment(_requestId, oracleId);
+
+        uint256 gasUsed = startGas - gasleft(); // Calculate gas used
+        uint256 gasCost = gasUsed * tx.gasprice; // Calculate the cost of gas
+
+        // Transfer the gas cost to the caller
+        payable(msg.sender).transfer(gasCost);
+    }
+
+    // Function to withdraw all Ether to the owner
+    function withdrawEtherToOwner() external onlyOwner {
+        uint256 balance = address(this).balance; // Get the contract's balance
+        require(balance > 0, "No Ether available");
+
+        // Transfer the entire balance to the owner
+        payable(owner()).transfer(balance);
     }
 }
