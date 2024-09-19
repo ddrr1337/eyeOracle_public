@@ -18,6 +18,12 @@ contract OracleRouter is ConfirmedOwner {
         bytes request
     );
 
+    event OracleResponse(
+        uint256 indexed requestId,
+        address indexed consumer,
+        uint256 indexed response
+    );
+
     //pass as many wallets as nodes you deploy
     constructor(
         address nodeCaller0,
@@ -56,6 +62,8 @@ contract OracleRouter is ConfirmedOwner {
         uint256 response
     ) external onlyAllowedNodes {
         IConsumer(consumer).handleOracleFulfillment(_requestId, response);
+
+        emit OracleResponse(_requestId, consumer, response);
     }
 
     function addConsumer(address consumer) external onlyOwner {
