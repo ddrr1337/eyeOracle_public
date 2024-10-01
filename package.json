@@ -25,6 +25,7 @@
     "dotenv": "^16.4.5",
     "ethereum-waffle": "^3.0.0",
     "ethers": "5.7",
+    "express": "^4.21.0",
     "hardhat": "^2.22.6",
     "hardhat-contract-sizer": "^2.10.0",
     "hardhat-deploy": "^0.9.29",

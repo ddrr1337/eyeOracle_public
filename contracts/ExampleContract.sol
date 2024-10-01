@@ -39,7 +39,7 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
             "ETH sent is less than gas cost for the callback"
         );
 
-        string memory url = "http://85.53.91.64:8001/api/test-request/";
+        string memory url = "http://85.55.18.40:8001/api/test-request/";
 
         // example of args
         string[] memory args = new string[](3);
@@ -49,19 +49,14 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
 
         OracleRequest.Request memory req;
 
-        req.url = url;
-        req.method = "POST";
+        req.url = url; //requiered
+        req.method = "POST"; //required
 
         req.setArgs(args);
 
         bytes memory requestData = req.encodeCBOR();
 
-        uint256 requestId = _sendRequest(requestData); //this will emit a event on OracleRouter that nodes will caputure
-
-        // pay the fees for the oracle callback
-        (bool success, ) = address(i_router).call{value: msg.value}("");
-
-        require(success, "ETH transfer to OracleRouter failed");
+        uint256 requestId = _sendRequest(requestData, fulfillRequestGasUsed); //this will emit a event on OracleRouter that nodes will caputure
 
         // Dummy data to show how to save the requestId of this request, for later build your code
         // inside fulfillRequest() based on the same requestId
@@ -84,7 +79,7 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
             "ETH sent is less than gas cost for the callback"
         );
 
-        string memory url = "http://85.53.91.64:8001/api/test-request/";
+        string memory url = "http://85.55.18.40:8001/api/test-request/";
         OracleRequest.Request memory req;
 
         req.url = url;
@@ -92,7 +87,7 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
 
         bytes memory requestData = req.encodeCBOR();
 
-        uint256 requestId = _sendRequest(requestData); //this will emit a event on OracleRouter that nodes will caputure
+        uint256 requestId = _sendRequest(requestData, fulfillRequestGasUsed); //this will emit a event on OracleRouter that nodes will caputure
 
         // pay the fees for the oracle callback
         (bool success, ) = address(i_router).call{value: msg.value}("");
@@ -123,5 +118,9 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
     function gasCostFulfill() public view returns (uint256) {
         uint256 gasPrice = tx.gasprice;
         return fulfillRequestGasUsed * gasPrice;
+    }
+
+    function changeGasFulfill(uint256 newGas) public {
+        fulfillRequestGasUsed = newGas;
     }
 }

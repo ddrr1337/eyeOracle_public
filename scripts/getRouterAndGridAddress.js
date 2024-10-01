@@ -14,8 +14,12 @@ async function main() {
   const oracleGridDeplotment = await deployments.get("OracleGrid");
   const oracleGridAddress = oracleGridDeplotment.address;
 
+  const exampleContractDeployment = await deployments.get("ExampleContract");
+  const exampleAddress = exampleContractDeployment.address;
+
   console.log("Router Address: ", oracleRouterAddress);
   console.log("Grid Address: ", oracleGridAddress);
+  console.log("Example Address: ", exampleAddress);
 }
 
 main()

@@ -13,8 +13,14 @@ abstract contract OracleClient {
         i_router = IOracleRouter(router);
     }
 
-    function _sendRequest(bytes memory data) internal returns (uint256) {
-        uint256 requestId = i_router.startRequest(data);
+    function _sendRequest(
+        bytes memory data,
+        uint256 gasUsed
+    ) internal returns (uint256) {
+        uint256 requestId = i_router.startRequest{value: msg.value}(
+            data,
+            gasUsed
+        );
         return requestId;
     }
 
