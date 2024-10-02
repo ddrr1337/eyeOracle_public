@@ -187,4 +187,10 @@ contract OracleRouter is ConfirmedOwner, ReentrancyGuard {
             }
         }
     }
+
+    function getOwnerConsumers(
+        address ownerAddress
+    ) public view returns (address[] memory) {
+        return ownerConsumersArray[ownerAddress];
+    }
 }

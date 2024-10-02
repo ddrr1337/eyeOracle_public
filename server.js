@@ -1,7 +1,6 @@
-// server.js
 const express = require("express");
 const redis = require("redis");
-const cors = require("cors");
+const bodyParser = require("body-parser");
 
 // Crear una instancia de la aplicación Express
 const app = express();
@@ -9,87 +8,101 @@ const app = express();
 // Configurar el puerto
 const PORT = process.env.PORT || 3000;
 
-// Configurar Redis
+// Configurar Redis y conectarse de forma asíncrona
 const redisClient = redis.createClient({
   url: `redis://${process.env.REDIS_SERVER}:${process.env.REDIS_PORT}`,
 });
 
-// Conectar Redis
-redisClient
-  .connect()
-  .then(() => {
-    console.log("Conectado exitosamente a Redis");
-  })
-  .catch((err) => {
-    console.error("Error al conectar con Redis:", err);
-  });
+// Middleware para procesar solicitudes JSON
+app.use(bodyParser.json());
+
+// Middleware para verificar la API Key
+app.use((req, res, next) => {
+  const apiKey = req.headers["api_key"]; // Cambia según el encabezado que uses
+  if (apiKey && apiKey === process.env.API_KEY) {
+    next(); // Si la API Key es válida, continúa con la siguiente función de middleware
+  } else {
+    res.status(403).send("Forbidden: Invalid API Key"); // Responde con un error 403 si la API Key es inválida
+  }
+});
+
+// Función para conectar Redis
+async function connectRedis() {
+  try {
+    await redisClient.connect();
+    console.log("REDIS CONNECTED!!");
+  } catch (error) {
+    console.error("Error connecting to Redis:", error);
+  }
+}
+
+// Llamar a la función de conexión a Redis
+connectRedis();
 
 // Manejo de errores de Redis
 redisClient.on("error", (err) => {
-  console.error("Error de Redis:", err);
+  console.error("Redis Error:", err);
 });
-
-// Middleware para parsear JSON
-app.use(express.json());
-
-// Configuración de CORS
-const allowedOrigins = ["http://localhost:3000", "http://85.55.18.40:8000"]; // Ajusta la IP pública de tu backend
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Permitir solicitudes de orígenes en allowedOrigins o sin origen (para algunas herramientas)
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error("No autorizado por CORS"));
-      }
-    },
-  })
-);
 
 // Ruta de prueba para verificar el servidor
 app.get("/", (req, res) => {
-  res.send("¡Servidor Express en funcionamiento!");
+  res.send("Express server running!");
 });
 
-// Ruta para guardar un header con addressConsumer como key en Redis
-app.post("/store-header", async (req, res) => {
+// Endpoint para guardar addressConsumer y headers en Redis
+app.post("/save-header", async (req, res) => {
   const { addressConsumer, headers } = req.body;
 
   if (!addressConsumer || !headers) {
-    return res.status(400).send("Faltan datos en la solicitud");
+    return res.status(400).send("addressConsumer and headers are required");
   }
 
   try {
-    await redisClient.set(addressConsumer, JSON.stringify(headers));
-    res.send(
-      `Header almacenado correctamente para el address: ${addressConsumer}`
-    );
+    // Convertir el objeto headers a JSON antes de guardarlo
+    const headersJSON = JSON.stringify(headers);
+
+    // Guardar addressConsumer como clave y headers como valor en Redis
+    await redisClient.set(addressConsumer, headersJSON);
+
+    res.send(`Headers ${addressConsumer} saved in Redis`);
   } catch (err) {
-    console.error("Error al almacenar en Redis:", err);
-    res.status(500).send("Error al almacenar en Redis");
+    console.error("Error saving headers in Redis:", err);
+    res.status(500).send("Error saving headers in Redis");
   }
 });
 
-// Ruta para obtener el header de un addressConsumer
+// Endpoint para obtener el valor (headers) de un addressConsumer
 app.get("/get-header/:addressConsumer", async (req, res) => {
   const { addressConsumer } = req.params;
 
   try {
-    const headers = await redisClient.get(addressConsumer);
-    if (headers) {
-      res.send(`Header para ${addressConsumer}: ${headers}`);
+    // Obtener el valor almacenado en Redis para el addressConsumer
+    const headersJSON = await redisClient.get(addressConsumer);
+
+    if (headersJSON) {
+      const headers = JSON.parse(headersJSON);
+      res.json({ addressConsumer, headers });
     } else {
-      res.status(404).send("No se encontró el header para esa dirección");
+      res.status(404).send(`Headers not found for ${addressConsumer}`);
     }
   } catch (err) {
-    console.error("Error al obtener de Redis:", err);
-    res.status(500).send("Error al obtener el header de Redis");
+    console.error("Error retrieving redis value:", err);
+    res.status(500).send("Error retrieving redis value");
+  }
+});
+
+// Ruta para probar Redis
+app.get("/test-redis", async (req, res) => {
+  try {
+    await redisClient.set("key", "value");
+    const value = await redisClient.get("key");
+    res.send(`Value saved in Redis: ${value}`);
+  } catch (err) {
+    res.status(500).send("Redis Error");
   }
 });
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`SERVER RUNNING AT http://localhost:${PORT}`);
 });
