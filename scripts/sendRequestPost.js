@@ -1,7 +1,6 @@
 const { ethers, deployments, network } = require("hardhat");
 const { getAccount } = require("../utils/getAccount");
 const { getGasPrice } = require("../utils/getGasPrice");
-const { networkConfig } = require("../helper-hardhat-config");
 
 async function main() {
   let rpcUrl = network.config.url;
@@ -17,12 +16,6 @@ async function main() {
     exampleAbi,
     account
   );
-
-  const routerAddress = await exampleContract.oracleRouter();
-  console.log("router", routerAddress);
-  console.log("Caller: ", account.address);
-  console.log("ExampleContract: ", exampleAddress);
-  console.log("OracleRouter Address: ", routerAddress);
 
   const gasPrice = await getGasPrice();
   const fulfillGasUsed = 100_000;

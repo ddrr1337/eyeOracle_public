@@ -11,4 +11,3 @@ artifacts
 gas-report.txt
 coverage.json
 coverage
-worker.log
