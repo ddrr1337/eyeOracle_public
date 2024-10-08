@@ -1,19 +1,12 @@
 const { ethers, deployments, network } = require("hardhat");
 const { getAccount } = require("../utils/getAccount");
 const { getGasPrice } = require("../utils/getGasPrice");
+const { networkConfig } = require("../helper-hardhat-config");
 
 async function main() {
-  const provider = new ethers.providers.JsonRpcProvider(
-    process.env.ALCHEMY_RPC
-  );
+  let rpcUrl = network.config.url;
+  let provider = new ethers.providers.JsonRpcProvider(rpcUrl);
   const account = getAccount("main", provider);
-  const gasUnitsCallback = 100_000;
-
-  const gasPrice = await getGasPrice();
-
-  const ethToSendInTx = gasUnitsCallback * gasPrice * 1.5;
-  console.log("ETH to Send wei:", ethToSendInTx);
-  console.log("eth:", ethToSendInTx / 10 ** 18);
 
   const exampleDeployment = await deployments.get("ExampleContract");
   const exampleAddress = exampleDeployment.address;
@@ -24,19 +17,28 @@ async function main() {
     exampleAbi,
     account
   );
-  const routerAddress = await exampleContract.oracleRouter();
 
+  const routerAddress = await exampleContract.oracleRouter();
+  console.log("router", routerAddress);
   console.log("Caller: ", account.address);
   console.log("ExampleContract: ", exampleAddress);
   console.log("OracleRouter Address: ", routerAddress);
 
-  const sendRequestGetTx = await exampleContract.exampleSendRequestGET({
-    value: BigInt(ethToSendInTx),
-  });
-  console.log("Tx:", sendRequestGetTx.hash);
+  const gasPrice = await getGasPrice();
+  const fulfillGasUsed = 100_000;
+
+  const ethToSendInTx = fulfillGasUsed * gasPrice * 1.5;
+
+  const sendRequestPostTx = await exampleContract.exampleSendRequestGET(
+    fulfillGasUsed,
+    {
+      value: BigInt(ethToSendInTx),
+    }
+  );
+  console.log("Tx:", sendRequestPostTx.hash);
 
   console.log(
-    "-------------------- SEND REQUEST GET COMPLETED -----------------------"
+    "-------------------- SEND REQUEST POST COMPLETED -----------------------"
   );
 }
 

@@ -8,6 +8,9 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 contract ExampleContract is OracleClient, ReentrancyGuard {
     using OracleRequest for OracleRequest.Request;
 
+    uint256 public gasSent;
+    uint256 public gasPriceTest;
+
     address public oracleRouter;
 
     struct RequestData {
@@ -18,22 +21,19 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
     mapping(uint256 requestId => RequestData request)
         public s_requestIdToRequest;
 
-    uint256 public fulfillRequestGasUsed;
     mapping(uint256 => uint256) public exampleFulfillResponse;
 
-    constructor(
-        address oracleRouterAddress,
-        uint256 _fulfillRequestGasUsed // calculate this off-chain and re-deploy with accurate gas units, first deploy pass any unit256
-    ) OracleClient(oracleRouterAddress) {
+    constructor(address oracleRouterAddress) OracleClient(oracleRouterAddress) {
         oracleRouter = oracleRouterAddress;
-        fulfillRequestGasUsed = _fulfillRequestGasUsed;
     }
 
-    function exampleSendRequestPOST() external payable nonReentrant {
-        // comment this requirement on fist  deploy to check first how much gas cost your fulfill callback
-        // then pass _fulfillRequestGasUsed to constructor with the real gas used in a second deploy
-        // not proud of this!
-        uint256 gasCost = gasCostFulfill();
+    function exampleSendRequestPOST(
+        uint256 fulfillGasUsed
+    ) external payable nonReentrant {
+        uint256 gasCost = gasCostFulfill(fulfillGasUsed);
+        gasSent = msg.value;
+        gasPriceTest = tx.gasprice;
+
         require(
             msg.value > gasCost,
             "ETH sent is less than gas cost for the callback"
@@ -52,11 +52,15 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
         req.url = url; //requiered
         req.method = "POST"; //required
 
+        //req.slot = "4";
+
         req.setArgs(args);
 
         bytes memory requestData = req.encodeCBOR();
 
-        uint256 requestId = _sendRequest(requestData, fulfillRequestGasUsed); //this will emit a event on OracleRouter that nodes will caputure
+        //this will emit a event on OracleRouter that nodes will caputure
+        //msg.value is sent here
+        uint256 requestId = _sendRequest(requestData, fulfillGasUsed);
 
         // Dummy data to show how to save the requestId of this request, for later build your code
         // inside fulfillRequest() based on the same requestId
@@ -69,11 +73,13 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
         );
     }
 
-    function exampleSendRequestGET() external payable nonReentrant {
+    function exampleSendRequestGET(
+        uint256 fulfillGasUsed
+    ) external payable nonReentrant {
         // comment this requirement on fist  deploy to check first how much gas cost your fulfill callback
         // then pass _fulfillRequestGasUsed to constructor with the real gas used in a second deploy
         // not proud of this!
-        uint256 gasCost = gasCostFulfill();
+        uint256 gasCost = gasCostFulfill(fulfillGasUsed);
         require(
             msg.value > gasCost,
             "ETH sent is less than gas cost for the callback"
@@ -84,15 +90,11 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
 
         req.url = url;
         req.method = "GET";
+        req.jsonResponsePath = "data.clientId[3]";
 
         bytes memory requestData = req.encodeCBOR();
 
-        uint256 requestId = _sendRequest(requestData, fulfillRequestGasUsed); //this will emit a event on OracleRouter that nodes will caputure
-
-        // pay the fees for the oracle callback
-        (bool success, ) = address(i_router).call{value: msg.value}("");
-
-        require(success, "ETH transfer to OracleRouter failed");
+        uint256 requestId = _sendRequest(requestData, fulfillGasUsed); //this will emit a event on OracleRouter that nodes will caputure
 
         uint256 dummyUint256 = 11;
         address dummyAddress = address(0);
@@ -115,12 +117,10 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
         exampleFulfillResponse[requestId] = response;
     }
 
-    function gasCostFulfill() public view returns (uint256) {
+    function gasCostFulfill(
+        uint256 fulfillGasUsed
+    ) public view returns (uint256) {
         uint256 gasPrice = tx.gasprice;
-        return fulfillRequestGasUsed * gasPrice;
-    }
-
-    function changeGasFulfill(uint256 newGas) public {
-        fulfillRequestGasUsed = newGas;
+        return fulfillGasUsed * gasPrice;
     }
 }

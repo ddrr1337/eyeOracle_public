@@ -4,6 +4,8 @@ const { requestQueue } = require("./queue");
 const { networkConfig } = require("../helper-hardhat-config");
 const winston = require("winston");
 const { checkRedis } = require("../utils/checkRedis");
+const oracleRouterAbi =
+  require("../artifacts/contracts/oracle/OracleRouter.sol/OracleRouter.json").abi;
 
 const logger = winston.createLogger({
   level: "info",
@@ -31,20 +33,17 @@ async function main() {
   logger.info("Redis server ONLINE");
 
   const chainId = network.config.chainId;
+  console.log("chainId", chainId);
   const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
   const oracleGridAddress = networkConfig[chainId].ORACLE_GRID_ADDRESS;
 
-  const ORACLE_ROUTER_ABI = [
-    "event OracleRequestHttp(uint256 indexed requestId,address indexed consumer,address indexed originalCaller, bytes request)",
-  ];
-
   const provider = new ethers.providers.JsonRpcProvider(
-    process.env.SEPOLIA_RPC
+    process.env.BASE_SEPOLIA_RPC
   );
 
   const oracleRouter = new ethers.Contract(
     oracleRouterAddress,
-    ORACLE_ROUTER_ABI,
+    oracleRouterAbi,
     provider
   );
 

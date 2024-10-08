@@ -4,8 +4,11 @@ async function sendRequest(requestId, decodedData, originalCaller, headers) {
 
     let options = {
       method: method,
-      headers: headers,
     };
+
+    if (headers) {
+      options.headers = headers; // Solo agrega headers si están definidos
+    }
 
     if (method !== "GET") {
       const requestBody = {

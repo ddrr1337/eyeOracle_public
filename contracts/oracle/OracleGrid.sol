@@ -8,7 +8,7 @@ contract OracleGrid is ConfirmedOwner {
     mapping(uint256 => uint64) public requstIdStatus;
     mapping(address => bool) public allowedNodeCallers;
     address[] public nodeCallers;
-    uint256 public compileIndex = 17; //force redeploy
+    uint256 public compileIndex = 21; //force redeploy
 
     // 2 nodes setup
     constructor(

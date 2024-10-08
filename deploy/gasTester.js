@@ -9,8 +9,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments;
   let rpcUrl = network.config.url;
   let provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-  const account = getAccount("main", provider);
-  const account2 = getAccount("sec", provider);
+
   const { deployer } = await getNamedAccounts();
   const chainId = network.config.chainId;
 
@@ -18,9 +17,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   await getGasPrice();
 
-  const constructorArgs = [account.address, account.address, account2.address];
+  const constructorArgs = [];
 
-  const oracleRouterDeploy = await deploy("OracleRouter", {
+  const gasContractDeploy = await deploy("GasTest", {
     from: deployer,
     args: constructorArgs,
     log: true,
@@ -29,17 +28,17 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   });
 
   console.log(
-    "----------------------- ORACLE ROUTER DEPLOYED --------------------------"
+    "----------------------- GAS CONTRACT DEPLOYED --------------------------"
   );
 
   const verifyContract = networkConfig[chainId].verify;
 
   if (verifyContract) {
-    await verify(oracleRouterDeploy.address, constructorArgs);
+    await verify(gasContractDeploy.address, constructorArgs);
     console.log(
       "----------------------- VERIFICATION COMPLETED --------------------------"
     );
   }
 };
 
-module.exports.tags = ["all", "oracleRouter"];
+module.exports.tags = ["all", "gas"];

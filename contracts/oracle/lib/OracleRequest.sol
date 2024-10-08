@@ -16,6 +16,7 @@ library OracleRequest {
         string url;
         string method;
         string slot;
+        string jsonResponsePath;
         string[] args;
     }
 
@@ -30,16 +31,14 @@ library OracleRequest {
         // Start a map
         cbor.startMap();
 
-        // default, using slot 0 secrets
-        if (bytes(self.slot).length == 0) {
-            cbor.writeKVString("slot", "0");
-        } else {
+        if (bytes(self.slot).length > 0) {
             cbor.writeKVString("slot", self.slot);
         }
 
         // Add key-value pairs
         cbor.writeKVString("url", self.url);
         cbor.writeKVString("method", self.method);
+        cbor.writeKVString("jsonResponsePath", self.jsonResponsePath);
 
         if (self.args.length > 0) {
             cbor.writeString("args");

@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const redis = require("redis");
 const bodyParser = require("body-parser");
@@ -6,7 +8,7 @@ const bodyParser = require("body-parser");
 const app = express();
 
 // Configurar el puerto
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.EXPRESS_PORT;
 
 // Configurar Redis y conectarse de forma asíncrona
 const redisClient = redis.createClient({
@@ -49,7 +51,7 @@ app.get("/", (req, res) => {
   res.send("Express server running!");
 });
 
-// Endpoint para guardar addressConsumer y headers en Redis
+// Endpoint para guardar addressConsumer y headers en Redis como un array
 app.post("/save-header", async (req, res) => {
   const { addressConsumer, headers } = req.body;
 
@@ -61,10 +63,25 @@ app.post("/save-header", async (req, res) => {
     // Convertir el objeto headers a JSON antes de guardarlo
     const headersJSON = JSON.stringify(headers);
 
-    // Guardar addressConsumer como clave y headers como valor en Redis
-    await redisClient.set(addressConsumer, headersJSON);
+    // Verificar el tipo de dato existente
+    const type = await redisClient.type(addressConsumer);
+    if (type !== "none" && type !== "list") {
+      // Si no es una lista, eliminamos la clave existente
+      await redisClient.del(addressConsumer);
+    }
 
-    res.send(`Headers ${addressConsumer} saved in Redis`);
+    // Verificar si el header ya existe en la lista de headers para el addressConsumer
+    const existingHeaders = await redisClient.lRange(addressConsumer, 0, -1);
+    if (existingHeaders.includes(headersJSON)) {
+      return res
+        .status(200)
+        .send("Header already exists for this addressConsumer");
+    }
+
+    // Añadir los nuevos headers al array usando RPUSH
+    await redisClient.rPush(addressConsumer, headersJSON);
+
+    res.send(`Headers added for ${addressConsumer} in Redis`);
   } catch (err) {
     console.error("Error saving headers in Redis:", err);
     res.status(500).send("Error saving headers in Redis");

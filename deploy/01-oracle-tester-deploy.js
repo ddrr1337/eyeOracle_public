@@ -28,9 +28,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     account
   );
 
-  const fulfillRequestGasUsed = 100_000;
-
-  const constructorArgs = [oracleRouterAddress, fulfillRequestGasUsed];
+  const constructorArgs = [oracleRouterAddress];
 
   const exampleContractDeploy = await deploy("ExampleContract", {
     from: deployer,

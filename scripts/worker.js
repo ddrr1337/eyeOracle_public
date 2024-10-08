@@ -4,6 +4,7 @@ const { sendRequest } = require("../utils/sendRequest");
 const { getAccount } = require("../utils/getAccount");
 const { decodeCBOR } = require("../utils/decodeCBOR");
 const { networkConfig } = require("../helper-hardhat-config");
+const { getFormattedHeaders } = require("../utils/getFormattedHeaders");
 const oracleGridAbi =
   require("../artifacts/contracts/oracle/OracleGrid.sol/OracleGrid.json").abi;
 const oracleRouterAbi =
@@ -33,11 +34,26 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function getNestedValue(obj, path) {
+  // Split the path by dots and handle array indices
+  const keys = path.split(/\.|\[(\d+)\]/).filter(Boolean); // Split by dots and array brackets
+
+  return keys.reduce((acc, key) => {
+    const index = parseInt(key); // Try to parse the key as an integer
+    if (Array.isArray(acc) && !isNaN(index)) {
+      return acc[index]; // If it's an array, access by index
+    } else if (acc && typeof acc === "object" && key in acc) {
+      return acc[key]; // If it's an object, access by key
+    }
+    return undefined; // Return undefined if the path is not valid
+  }, obj);
+}
+
 async function main() {
   const ORACLE_ID = process.env.ORACLE_ID;
 
   const provider = new ethers.providers.JsonRpcProvider(
-    process.env.SEPOLIA_RPC
+    process.env.BASE_SEPOLIA_RPC
   );
   const chainId = network.config.chainId;
 
@@ -91,13 +107,18 @@ async function main() {
         const decodedRequest = await decodeCBOR(request);
         logger.info(`Decoded request: ${JSON.stringify(decodedRequest)}`);
 
-        const token = process.env.NODE_ACCESS;
+        let headers;
 
-        // this headers are setted to call a python django backend, modify this headers depending of your backend
-        const headers = {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        };
+        if (decodedRequest.slot) {
+          logger.info(`slot: ${decodedRequest.slot}`);
+
+          headers = await getFormattedHeaders(
+            consumer.toLowerCase(),
+            parseInt(decodedRequest.slot)
+          );
+        }
+
+        console.log("json_response_path", decodedRequest.jsonResponsePath);
 
         let backendResponse;
         try {
@@ -108,12 +129,7 @@ async function main() {
             headers
           );
 
-          if (!backendResponse || !backendResponse.data) {
-            logger.error(
-              "Invalid response from backend, returning uint256=0 to consumer contract"
-            );
-            backendResponse = { data: 0 };
-          }
+          console.log(backendResponse);
         } catch (sendRequestError) {
           logger.error(`Error in sendRequest: ${sendRequestError.message}`);
           logger.error(
@@ -128,17 +144,23 @@ async function main() {
           getAccount(process.env.NODE_SELECTED_WALLET, provider)
         );
 
+        // Usar getNestedValue para obtener el valor basado en jsonResponsePath
+        const extractedValue = getNestedValue(
+          backendResponse,
+          decodedRequest.jsonResponsePath
+        );
+
         await routerContract.fulfill(
           consumer,
           requestId,
-          BigInt(backendResponse.data), //.data is my response from my API {'data':<int>}, change depending of your API reposnse
+          BigInt(extractedValue || 0), // Si el valor es undefined, devolver 0
           {
             gasLimit: MAX_GAS_ON_CALLBACK,
           }
         );
 
         logger.info(`${decodedRequest.method} request ended`);
-        logger.info(`BACKEND response: ${backendResponse.data}`);
+        logger.info(`BACKEND response: ${extractedValue}`);
         logger.info(
           `Successfully fulfilled request ${requestId} to consumer contract: ${consumer}`
         );
