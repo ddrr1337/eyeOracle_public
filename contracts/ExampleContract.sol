@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// Example Contract
 pragma solidity ^0.8.19;
 
 import {OracleRequest} from "./oracle/lib/OracleRequest.sol";
@@ -7,9 +8,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 
 contract ExampleContract is OracleClient, ReentrancyGuard {
     using OracleRequest for OracleRequest.Request;
-
-    uint256 public gasSent;
-    uint256 public gasPriceTest;
 
     address public oracleRouter;
 
@@ -21,71 +19,65 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
     mapping(uint256 requestId => RequestData request)
         public s_requestIdToRequest;
 
-    mapping(uint256 => uint256) public exampleFulfillResponse;
+    bytes public exampleFulfillResponseBytes;
+    uint256 public exampleFulfillResponseUint256;
+
+    string public testerCustomBody;
 
     constructor(address oracleRouterAddress) OracleClient(oracleRouterAddress) {
         oracleRouter = oracleRouterAddress;
     }
 
     function exampleSendRequestPOST(
-        uint256 fulfillGasUsed
+        uint256 fulfillGasUsed,
+        string memory valueInput_1,
+        string memory valueInput_2
     ) external payable nonReentrant {
         uint256 gasCost = gasCostFulfill(fulfillGasUsed);
-        gasSent = msg.value;
-        gasPriceTest = tx.gasprice;
 
         require(
             msg.value > gasCost,
             "ETH sent is less than gas cost for the callback"
         );
 
-        string memory url = "http://85.55.18.40:8001/api/test-request/";
+        string memory url = "http://<your host>:<port>/sum/"; //<--- SETUP YOUR HOST HERE
 
-        // example of args
-        string[] memory args = new string[](3);
-        args[0] = "arg0";
-        args[1] = "arg1";
-        args[2] = "arg2";
+        string memory requestBody = string(
+            abi.encodePacked(
+                '{"arg_1":"', //<--- We setted in server.js this key body so we pass it now
+                valueInput_1,
+                '","arg_2":"', //<--- We setted in server.js this key body so we pass it now
+                valueInput_2,
+                '"}'
+            )
+        );
 
         OracleRequest.Request memory req;
 
-        req.url = url; //requiered
-        req.method = "POST"; //required
-
-        //req.slot = "4";
-
-        req.setArgs(args);
+        req.url = url;
+        req.method = "POST";
+        req.slot = "0";
+        req.jsonResponsePath = "data.result";
+        req.requestBody = requestBody;
+        req.bodyValuesDataTypes = '["uint256","uint256"]';
 
         bytes memory requestData = req.encodeCBOR();
 
         //this will emit a event on OracleRouter that nodes will caputure
         //msg.value is sent here
         uint256 requestId = _sendRequest(requestData, fulfillGasUsed);
-
-        // Dummy data to show how to save the requestId of this request, for later build your code
-        // inside fulfillRequest() based on the same requestId
-        uint256 dummyUint256 = 11;
-        address dummyAddress = address(0);
-
-        s_requestIdToRequest[requestId] = RequestData(
-            dummyUint256,
-            dummyAddress
-        );
     }
 
     function exampleSendRequestGET(
         uint256 fulfillGasUsed
     ) external payable nonReentrant {
-        // comment this requirement on fist  deploy to check first how much gas cost your fulfill callback
-        // then pass _fulfillRequestGasUsed to constructor with the real gas used in a second deploy
-        // not proud of this!
         uint256 gasCost = gasCostFulfill(fulfillGasUsed);
         require(
             msg.value > gasCost,
             "ETH sent is less than gas cost for the callback"
         );
 
-        string memory url = "http://85.55.18.40:8001/api/test-request/";
+        string memory url = "http://<your host>:<port>/api/data/";
         OracleRequest.Request memory req;
 
         req.url = url;
@@ -106,15 +98,27 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
     }
 
     // THIS FUNCTION IS CALLED BY THE ORACLE
-    // First calculate the gas units for the callback off-chain
-    // oracle will call fulfill() on the OracleRouter address, you can see there the transactions of
-    // fulfill() to know the gas units spent of oracle callback
-    // then re-deploy this contract and set in the constructor the gas units in _fulfillRequestGasUsed
+    // oracle will call fulfill() on the OracleRouter address
     function fulfillRequest(
         uint256 requestId,
-        uint256 response
+        bytes memory response
     ) internal override {
-        exampleFulfillResponse[requestId] = response;
+        exampleFulfillResponseBytes = response;
+    }
+
+    function decodeBytesToUint256() public view returns (uint256) {
+        uint256 value = abi.decode(exampleFulfillResponseBytes, (uint256));
+        return value;
+    }
+
+    function decodeBytesToString() public view returns (string memory) {
+        string memory value = string(exampleFulfillResponseBytes);
+        return value;
+    }
+
+    function decodeBytesToBool() public view returns (bool) {
+        bool value = abi.decode(exampleFulfillResponseBytes, (bool));
+        return value;
     }
 
     function gasCostFulfill(

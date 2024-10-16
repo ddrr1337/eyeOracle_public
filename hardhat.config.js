@@ -4,9 +4,9 @@ require("@nomicfoundation/hardhat-verify");
 require("hardhat-deploy");
 
 const SEPOLIA_RPC = process.env.SEPOLIA_RPC;
-const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const ETHERSCAN_TOKEN = process.env.ETHERSCAN_TOKEN;
+const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC;
 const BASE_ETHERSCAN_TOKEN = process.env.BASE_ETHERSCAN_TOKEN;
 
 module.exports = {
@@ -61,7 +61,7 @@ module.exports = {
       url: BASE_SEPOLIA_RPC,
       accounts: [PRIVATE_KEY],
       chainId: 84532,
-      blockConfirmations: 1,
+      blockConfirmations: 6,
     },
 
     localHost: {

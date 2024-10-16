@@ -5,7 +5,7 @@ const networkConfig = {
 
   11155111: {
     name: "sepolia",
-    ORACLE_ROUTER_ADDRESS: "0x379B179C0e17904b61E4448d91366F7A4f92C42b",
+    ORACLE_ROUTER_ADDRESS: "0x995f0fe900E2AaC07b27145598905937C4eC6f82",
     verify: true,
   },
   84532: {

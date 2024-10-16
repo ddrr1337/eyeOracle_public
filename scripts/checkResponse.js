@@ -17,26 +17,18 @@ async function main() {
     account
   );
 
-  const gasPrice = await getGasPrice();
-  const fulfillGasUsed = 44019; // <== input the gas usage here
+  await getGasPrice();
 
-  const ethToSendInTx = fulfillGasUsed * gasPrice * 1.5; //<== apply 50% more gas just for small fluctuactions. Exceed gas wil refund to caller by the oracle
+  const checkResponseBytes = await exampleContract.exampleFulfillResponse();
 
-  const inputValue_1 = "3";
-  const inputValue_2 = "7";
+  console.log("Response from oracle in bytes:", checkResponseBytes * 1);
 
-  const sendRequestPostTx = await exampleContract.exampleSendRequestPOST(
-    fulfillGasUsed,
-    inputValue_1,
-    inputValue_2,
-    {
-      value: BigInt(ethToSendInTx),
-    }
-  );
-  console.log("Tx:", sendRequestPostTx.hash);
+  const checkResponseUint = await exampleContract.decodeBytesToUint256();
+
+  console.log("Response from oracle in uint:", checkResponseUint);
 
   console.log(
-    "-------------------- SEND REQUEST POST COMPLETED -----------------------"
+    "-------------------- CHECK RESPONSE COMPLETED -----------------------"
   );
 }
 

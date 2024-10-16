@@ -3,40 +3,23 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "scripts": {
-    "simulateBuyStock": "node ./functions/simulators/alpacaBuyStockSimulator.js",
-    "simulateSellStock": "node ./functions/simulators/alpacaSellStockSimulator.js",
-    "simulateBackendBuy": "node ./functions/simulators/backendBuySimulator.js",
-    "simulateBackendSell": "node ./functions/simulators/backendSellSimulator.js"
-  },
   "devDependencies": {
-    "@chainlink/contracts": "^1.1.1",
-    "@chainlink/functions-toolkit": "^0.2.8",
     "@nomicfoundation/hardhat-ethers": "^3.0.2",
     "@nomicfoundation/hardhat-verify": "^2.0.9",
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@openzeppelin/contracts": "^5.0.2",
-    "bull": "^4.16.0",
-    "cbor": "^9.0.2",
     "cbor-x": "^1.6.0",
     "chai": "^4.2.0",
-    "concurrently": "^8.2.2",
-    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "ethereum-waffle": "^3.0.0",
     "ethers": "5.7",
     "express": "^4.21.0",
     "hardhat": "^2.22.6",
-    "hardhat-contract-sizer": "^2.10.0",
     "hardhat-deploy": "^0.9.29",
-    "hardhat-gas-reporter": "1.0.7",
     "node-fetch": "^3.3.2",
     "prettier": "^3.3.2",
-    "prettier-plugin-solidity": "^1.3.1",
-    "redis": "^4.7.0",
-    "solidity-coverage": "0.7.18",
-    "winston": "^3.14.2"
+    "prettier-plugin-solidity": "^1.3.1"
   },
   "dependencies": {}
 }

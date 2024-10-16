@@ -12,11 +12,6 @@ async function getGasPrice() {
   );
   console.log("----------------------------------------");
 
-  console.log("lastBaseFeePerGas", gasPrice.lastBaseFeePerGas * 1);
-  console.log("maxFeePerGas", gasPrice.maxFeePerGas * 1);
-  console.log("maxPriorityFeePerGas", gasPrice.maxPriorityFeePerGas * 1);
-  console.log("gasPrice", gasPrice.gasPrice * 1);
-
   return parseInt(gasPrice.maxFeePerGas);
 }
 

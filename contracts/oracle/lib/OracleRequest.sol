@@ -17,7 +17,9 @@ library OracleRequest {
         string method;
         string slot;
         string jsonResponsePath;
-        string[] args;
+        string requestBody;
+        string bodyValuesDataTypes;
+        bool allowFloatResponse;
     }
 
     function encodeCBOR(
@@ -40,13 +42,14 @@ library OracleRequest {
         cbor.writeKVString("method", self.method);
         cbor.writeKVString("jsonResponsePath", self.jsonResponsePath);
 
-        if (self.args.length > 0) {
-            cbor.writeString("args");
-            cbor.startArray();
-            for (uint256 i = 0; i < self.args.length; ++i) {
-                cbor.writeString(self.args[i]);
-            }
-            cbor.endSequence();
+        if (bytes(self.requestBody).length > 0) {
+            cbor.writeKVString("requestBody", self.requestBody);
+        }
+        if (bytes(self.bodyValuesDataTypes).length > 0) {
+            cbor.writeKVString("bodyValuesDataTypes", self.bodyValuesDataTypes);
+        }
+        if (self.allowFloatResponse) {
+            cbor.writeKVBool("allowFloatResponse", self.allowFloatResponse);
         }
 
         // End the map
@@ -54,11 +57,5 @@ library OracleRequest {
 
         // Return the encoded data
         return cbor.data();
-    }
-
-    function setArgs(Request memory self, string[] memory args) internal pure {
-        if (args.length == 0) revert EmptyArgs();
-
-        self.args = args;
     }
 }

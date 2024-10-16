@@ -4,11 +4,9 @@ const { network, ethers } = require("hardhat");
 const { verify } = require("../utils/verify");
 const { getAccount } = require("../utils/getAccount");
 const { getGasPrice } = require("../utils/getGasPrice");
-const IoracleRouterAbi =
-  require("../artifacts/contracts/oracle/interfaces/IOracleRouter.sol/IOracleRouter.json").abi;
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
-  const { deploy } = deployments;
+  const { deploy, log } = deployments;
   let rpcUrl = network.config.url;
   let provider = new ethers.providers.JsonRpcProvider(rpcUrl);
   const account = getAccount("main", provider);
@@ -16,13 +14,17 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = network.config.chainId;
 
+  const gasMultiplier = 1.2;
+
   await getGasPrice();
 
-  const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
+  const oracleRouterDeployment = await deployments.get("OracleRouter");
+  const oracleRouterAddress = oracleRouterDeployment.address;
+  const oracleRouterAbi = oracleRouterDeployment.abi;
 
   const oracleRouterContract = new ethers.Contract(
     oracleRouterAddress,
-    IoracleRouterAbi,
+    oracleRouterAbi,
     account
   );
 
@@ -33,6 +35,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     args: constructorArgs,
     log: true,
     waitConfirmations: network.config.blockConfirmations || 1,
+    gasMultiplier: gasMultiplier,
   });
 
   console.log(
@@ -51,6 +54,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
   const addConsumerTx = await oracleRouterContract.addConsumer(
     exampleContractDeploy.address
   );
+  console.log("Tx", addConsumerTx.hash);
+
   console.log(
     "----------------------- ADD CONSUMER COMPLETED --------------------------"
   );

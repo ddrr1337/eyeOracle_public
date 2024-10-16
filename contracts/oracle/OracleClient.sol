@@ -26,12 +26,12 @@ abstract contract OracleClient {
 
     function fulfillRequest(
         uint256 requestId,
-        uint256 response
+        bytes memory response
     ) internal virtual;
 
     function handleOracleFulfillment(
         uint256 requestId,
-        uint256 response
+        bytes memory response
     ) external {
         require(
             msg.sender == address(i_router),
