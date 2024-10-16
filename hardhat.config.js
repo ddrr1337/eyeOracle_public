@@ -3,9 +3,7 @@ require("dotenv").config();
 require("@nomicfoundation/hardhat-verify");
 require("hardhat-deploy");
 
-const SEPOLIA_RPC = process.env.SEPOLIA_RPC;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const ETHERSCAN_TOKEN = process.env.ETHERSCAN_TOKEN;
 const BASE_SEPOLIA_RPC = process.env.BASE_SEPOLIA_RPC;
 const BASE_ETHERSCAN_TOKEN = process.env.BASE_ETHERSCAN_TOKEN;
 
@@ -23,7 +21,6 @@ module.exports = {
     // Obtain one at https://etherscan.io/
     apiKey: {
       "base-sepolia": BASE_ETHERSCAN_TOKEN,
-      sepolia: ETHERSCAN_TOKEN,
     },
     customChains: [
       {
@@ -32,14 +29,6 @@ module.exports = {
         urls: {
           apiURL: "https://api-sepolia.basescan.org/api",
           browserURL: "https://sepolia.basescan.org",
-        },
-      },
-      {
-        network: "sepolia",
-        chainId: 11155111,
-        urls: {
-          apiURL: "https://api-sepolia.etherscan.io/api",
-          browserURL: "https://sepolia.etherscan.io/",
         },
       },
     ],
@@ -51,12 +40,6 @@ module.exports = {
     enabled: false,
   },
   networks: {
-    sepolia: {
-      url: SEPOLIA_RPC,
-      accounts: [PRIVATE_KEY],
-      chainId: 11155111,
-      blockConfirmations: 1,
-    },
     base_sepolia: {
       url: BASE_SEPOLIA_RPC,
       accounts: [PRIVATE_KEY],
