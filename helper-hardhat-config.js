@@ -5,7 +5,7 @@ const networkConfig = {
 
   84532: {
     name: "base_spolia",
-    ORACLE_ROUTER_ADDRESS: "0x2474e07410d8D0De79DAa8eA575113913B5cAF82",
+    ORACLE_ROUTER_ADDRESS: "0x5B06eEF47eC7Ff4Ecb892846Dbb2edaa81f5FCE6",
     verify: true,
   },
 };

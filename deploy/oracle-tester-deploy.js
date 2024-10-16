@@ -4,6 +4,8 @@ const { network, ethers } = require("hardhat");
 const { verify } = require("../utils/verify");
 const { getAccount } = require("../utils/getAccount");
 const { getGasPrice } = require("../utils/getGasPrice");
+const { oracleRouterAbi } =
+  require("../artifacts/contracts/oracle/OracleRouter.sol/OracleRouter.json").abi;
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy, log } = deployments;
@@ -18,9 +20,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
   await getGasPrice();
 
-  const oracleRouterDeployment = await deployments.get("OracleRouter");
-  const oracleRouterAddress = oracleRouterDeployment.address;
-  const oracleRouterAbi = oracleRouterDeployment.abi;
+  const oracleRouterAddress = networkConfig[chainId].ORACLE_ROUTER_ADDRESS;
 
   const oracleRouterContract = new ethers.Contract(
     oracleRouterAddress,
