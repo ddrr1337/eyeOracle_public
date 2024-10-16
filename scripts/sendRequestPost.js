@@ -18,7 +18,7 @@ async function main() {
   );
 
   const gasPrice = await getGasPrice();
-  const fulfillGasUsed = 44019; // <== input the gas usage here
+  const fulfillGasUsed = 136970; // <== input the gas usage here
 
   const ethToSendInTx = fulfillGasUsed * gasPrice * 1.5; //<== apply 50% more gas just for small fluctuactions. Exceed gas wil refund to caller by the oracle
 

@@ -4,7 +4,7 @@ const { network, ethers } = require("hardhat");
 const { verify } = require("../utils/verify");
 const { getAccount } = require("../utils/getAccount");
 const { getGasPrice } = require("../utils/getGasPrice");
-const { oracleRouterAbi } =
+const oracleRouterAbi =
   require("../artifacts/contracts/oracle/OracleRouter.sol/OracleRouter.json").abi;
 
 module.exports = async ({ getNamedAccounts, deployments }) => {

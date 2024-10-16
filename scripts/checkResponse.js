@@ -19,13 +19,14 @@ async function main() {
 
   await getGasPrice();
 
-  const checkResponseBytes = await exampleContract.exampleFulfillResponse();
+  const checkResponseBytes =
+    await exampleContract.exampleFulfillResponseBytes();
 
-  console.log("Response from oracle in bytes:", checkResponseBytes * 1);
+  console.log("Response from oracle in bytes:", checkResponseBytes);
 
   const checkResponseUint = await exampleContract.decodeBytesToUint256();
 
-  console.log("Response from oracle in uint:", checkResponseUint);
+  console.log("Response from oracle in uint:", checkResponseUint * 1);
 
   console.log(
     "-------------------- CHECK RESPONSE COMPLETED -----------------------"
