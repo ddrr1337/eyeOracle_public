@@ -29,7 +29,7 @@ async function main() {
   console.log("Response from oracle in uint:", checkResponseUint * 1);
 
   console.log(
-    "-------------------- CHECK RESPONSE COMPLETED -----------------------"
+    "-------------------- CHECK RESPONSE POST COMPLETED -----------------------"
   );
 }
 

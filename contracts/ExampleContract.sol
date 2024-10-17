@@ -69,7 +69,9 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
     }
 
     function exampleSendRequestGET(
-        uint256 fulfillGasUsed
+        uint256 fulfillGasUsed,
+        string memory name,
+        string memory age
     ) external payable nonReentrant {
         uint256 gasCost = gasCostFulfill(fulfillGasUsed);
         require(
@@ -77,24 +79,23 @@ contract ExampleContract is OracleClient, ReentrancyGuard {
             "ETH sent is less than gas cost for the callback"
         );
 
-        string memory url = "http://<your host>:<port>/api/data/";
-        OracleRequest.Request memory req;
+        // Base URL
+        string memory baseUrl = "http://<your host>:<port>/greet/";
 
+        // Concatenate the URL with the name and age
+        string memory url = string(abi.encodePacked(baseUrl, name, "/", age));
+
+        OracleRequest.Request memory req;
         req.url = url;
         req.method = "GET";
-        req.jsonResponsePath = "data.clientId[3]";
+        req.slot = "0";
+        req.jsonResponsePath = "message"; // Adjust this according to the actual response structure
 
         bytes memory requestData = req.encodeCBOR();
 
-        uint256 requestId = _sendRequest(requestData, fulfillGasUsed); //this will emit a event on OracleRouter that nodes will caputure
-
-        uint256 dummyUint256 = 11;
-        address dummyAddress = address(0);
-
-        s_requestIdToRequest[requestId] = RequestData(
-            dummyUint256,
-            dummyAddress
-        );
+        //this will emit a event on OracleRouter that nodes will caputure
+        //msg.value is sent here
+        uint256 requestId = _sendRequest(requestData, fulfillGasUsed);
     }
 
     // THIS FUNCTION IS CALLED BY THE ORACLE

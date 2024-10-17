@@ -17,26 +17,19 @@ async function main() {
     account
   );
 
-  const gasPrice = await getGasPrice();
-  const fulfillGasUsed = 110499;
+  await getGasPrice();
 
-  const ethToSendInTx = fulfillGasUsed * gasPrice * 1.5;
+  const checkResponseBytes =
+    await exampleContract.exampleFulfillResponseBytes();
 
-  const name = "john";
-  const age = "33";
+  console.log("Response from oracle in bytes:", checkResponseBytes);
 
-  const sendRequestPostTx = await exampleContract.exampleSendRequestGET(
-    fulfillGasUsed,
-    name,
-    age,
-    {
-      value: BigInt(ethToSendInTx),
-    }
-  );
-  console.log("Tx:", sendRequestPostTx.hash);
+  const checkResponseUint = await exampleContract.decodeBytesToString();
+
+  console.log("Response from oracle in string:", checkResponseUint);
 
   console.log(
-    "-------------------- SEND REQUEST GET COMPLETED -----------------------"
+    "-------------------- CHECK RESPONSE GET COMPLETED -----------------------"
   );
 }
 
