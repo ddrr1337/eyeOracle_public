@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const networkConfig = {
   31337: {
     name: "localhost",
@@ -5,7 +7,7 @@ const networkConfig = {
 
   84532: {
     name: "base_spolia",
-    ORACLE_ROUTER_ADDRESS: "0x5B06eEF47eC7Ff4Ecb892846Dbb2edaa81f5FCE6",
+    ORACLE_ROUTER_ADDRESS: process.env.BASE_SEPOLIA_ORACLE_ROUTER_ADDRESS,
     verify: true,
   },
 };
