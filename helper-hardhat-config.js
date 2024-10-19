@@ -7,7 +7,7 @@ const networkConfig = {
 
   84532: {
     name: "base_spolia",
-    ORACLE_ROUTER_ADDRESS: process.env.BASE_SEPOLIA_ORACLE_ROUTER_ADDRESS,
+    ORACLE_ROUTER_ADDRESS: process.env.ROUTER_ADDRESS,
     verify: true,
   },
 };
